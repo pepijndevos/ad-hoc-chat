@@ -12,6 +12,7 @@
 
 #define TIMER_EXPIRE 2
 #define HEART_BEAT_INCR 5
+#define WAIT_EXPIRE 6
 #define MAX_NODES 4
 
 class RaftNode {
@@ -32,9 +33,10 @@ private:
 	int prev_term;			// previous term
 	int prev_index;			// node where you got the last message from
 	int size_received_q;
-    int vote;               // how many votes you got
+    int vote;			// how many votes you got
 	bool voting;			// I am voting
-    //bool join;			// I join
+	bool is_waiting;
+	time_t wait_time;
 
     void updateTimer();
     void messageReceived(Packet new_packet);
