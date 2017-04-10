@@ -1,9 +1,6 @@
 /*
  * Security.h
- *
- *  Created on: 9 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
+ * group: 3
  */
 
 #ifndef SECURITY_H_
@@ -14,8 +11,7 @@
 class Security {
 public:
 	Security();
-	virtual ~Security();
-
+    virtual ~Security();
 private:
 	std::string password;
 	void encrypt();
