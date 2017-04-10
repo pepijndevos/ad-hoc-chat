@@ -3,7 +3,6 @@
 #include <string>
 #include <unistd.h>
 #include <limits.h>
-#include <libproc.h>
 #include <stdio.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
@@ -16,6 +15,11 @@
     #define _WINDOWS false
     #define OS_SPLIT "/"
     static const bool WINDOWS = false;
+
+#if __APPLE__
+    #include <libproc.h>
+#endif
+
 #endif // If Windows
 
 static std::string *exec_name = new std::string("chat");
