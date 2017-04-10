@@ -1,5 +1,4 @@
 #include "chatwindow.h"
-#include "adhoc.h"
 #include "utils.h"
 #include <string>
 #include <QApplication>

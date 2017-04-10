@@ -1,9 +1,6 @@
 /*
  * RaftNode.h
  *
- *  Created on: 9 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
  */
 
 #ifndef RAFTNODE_H_
@@ -13,6 +10,9 @@
 #include <vector>
 #include "Packet.h"
 
+#define TIMER_EXPIRE 2
+#define HEART_BEAT_INCR 5
+#define MAX_NODES 4
 
 class RaftNode {
 public:
@@ -31,13 +31,14 @@ private:
 	bool is_candidate;
 	int prev_term;			// previous term
 	int prev_index;			// node where you got the last message from
-	void updateTimer();
-	void messageReceived(Packet new_packet);
-	void electLeader();		// chose how is the leader
 	int size_received_q;
-	int vote;				// how many votes you got
+    int vote;			// how many votes you got
 	bool voting;			// I am voting
-	//bool join;				// I join
+    //bool join;			// I join
+
+    void updateTimer();
+    void messageReceived(Packet new_packet);
+    void electLeader();		// chose how is the leader
 };
 
 #endif /* RAFTNODE_H_ */
