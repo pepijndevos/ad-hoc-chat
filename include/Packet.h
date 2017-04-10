@@ -9,6 +9,7 @@
 
 #include <vector>
 #include <string>
+#include "Security.h"
 
 struct packet_repr{
     int seq;
