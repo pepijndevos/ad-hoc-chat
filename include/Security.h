@@ -1,20 +1,21 @@
 /*
  * Security.h
- *
- *  Created on: 9 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
+ * group: 3
  */
 
 #ifndef SECURITY_H_
 #define SECURITY_H_
 
 #include <string>
+#include "md5.h"
 
 class Security {
 public:
 	Security();
-	virtual ~Security();
+    virtual ~Security();
+
+    static std::string getMD5sum(std::string str);
+    static std::string getFileMD5(std::string path);
 
 private:
 	std::string password;

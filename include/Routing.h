@@ -14,7 +14,7 @@ class Routing {
 public:
 	Routing();
 	virtual ~Routing();
-        std::vector<Packet *pkt> received_data;
+    std::vector<Packet*> received_data;
 
 private:
         void incrementSeq(Packet *pkt);

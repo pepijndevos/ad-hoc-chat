@@ -22,8 +22,8 @@
 
 #endif // If Windows
 
-static std::string *exec_name = new std::string("chat");
-static std::string *computer_id = new std::string("1");
+static std::string exec_name = std::string("chat");
+static std::string computer_id = std::string("1");
 
 std::string do_readlink(std::string const& path); // Implement readlink
 std::string getExecPath(bool incl_name);     // Path of the executable

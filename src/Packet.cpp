@@ -6,27 +6,29 @@
 
 #include "Packet.h"
 
-Packet::Packet() :
+Packet::Packet():
 	seq(0),
 	msg_id(0),
     ack(0),
     sender_id("1"),
     payload(""),
-    checksum("")
-{}
+    checksum(""){
+
+}
 
 Packet::~Packet() {
 }
 
 void Packet::createPacket(std::string payload, int seq, int msg_id, int ack, std::string sender_id,           // Data
                           bool connected, bool leader, bool vote, bool candidate){  // Flags
-    /* Create the UDP Packet */
+    /* Load the Packet Data */
     this->payload = payload;
     this->seq = seq;
     this->msg_id = msg_id;
     this->ack = ack;
     this->sender_id = sender_id;
     this->flags = createFlags(connected, leader, vote, candidate);
+    this->checksum = getChecksum();
 }
 
 void Packet::loadFromStruct(packet_repr payload){
@@ -71,6 +73,7 @@ std::string Packet::createFlags(bool connected, bool leader, bool vote, bool can
 
 std::string Packet::getChecksum(){
     /* Calculate the checksum of the Packet */
-    // TODO
-    return "";
+    std::string ck = std::to_string(seq) + std::to_string(ack) + std::to_string(msg_id);
+    ck += flags + payload;
+    return Security::getMD5sum(ck);
 }

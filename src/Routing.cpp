@@ -10,12 +10,9 @@
 #include "Packet.h"
 
 Routing::Routing() {
-	// TODO Auto-generated constructor stub
-
 }
 
 Routing::~Routing() {
-	// TODO Auto-generated destructor stub
 }
 
 void Routing::incrementSeq(Packet *pkt){

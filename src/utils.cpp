@@ -49,9 +49,9 @@ std::string do_readlink(std::string const& path) {
 }
 
 void setExecName(std::string new_name){
-    *exec_name = new_name;
+    exec_name = new_name;
 }
 
 void setComputerId(std::string id){
-    *computer_id = id;
+    computer_id = id;
 }
