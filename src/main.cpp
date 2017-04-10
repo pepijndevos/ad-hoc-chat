@@ -1,4 +1,5 @@
 #include "chatwindow.h"
+#include <string>
 #include <QApplication>
 
 int main(int argc, char *argv[])
