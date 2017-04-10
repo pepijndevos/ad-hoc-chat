@@ -10,6 +10,7 @@ Packet::Packet() :
 	seq(0),
 	msg_id(0),
     ack(0),
+    sender_id("1"),
     payload(""),
     checksum("")
 {}
@@ -17,13 +18,14 @@ Packet::Packet() :
 Packet::~Packet() {
 }
 
-void Packet::createPacket(std::string payload, int seq, int msg_id, int ack,           // Data
+void Packet::createPacket(std::string payload, int seq, int msg_id, int ack, std::string sender_id,           // Data
                           bool connected, bool leader, bool vote, bool candidate){  // Flags
     /* Create the UDP Packet */
     this->payload = payload;
     this->seq = seq;
     this->msg_id = msg_id;
     this->ack = ack;
+    this->sender_id = sender_id;
     this->flags = createFlags(connected, leader, vote, candidate);
 }
 
@@ -33,6 +35,7 @@ void Packet::loadFromStruct(packet_repr payload){
     this->ack = payload.ack;
     this->msg_id = payload.msg_id;
     this->flags = payload.flags;
+    this->sender_id = payload.sender_id;
     this->payload = payload.payload;
     this->checksum = payload.checksum;
 }

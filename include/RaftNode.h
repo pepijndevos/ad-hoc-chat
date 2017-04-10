@@ -32,7 +32,7 @@ private:
 	int prev_term;			// previous term
 	int prev_index;			// node where you got the last message from
 	int size_received_q;
-    int vote;			// how many votes you got
+    int vote;               // how many votes you got
 	bool voting;			// I am voting
     //bool join;			// I join
 

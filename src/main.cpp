@@ -11,6 +11,7 @@
 int main(int argc, char *argv[])
 {
     setExecName(argv[0]);
+    setComputerId(COMPUTER_ID);
 
     QApplication a(argc, argv);
     ChatWindow w;
@@ -19,5 +20,7 @@ int main(int argc, char *argv[])
     int ret_val = a.exec();
 
     delete exec_name;
+    delete computer_id;
+
     return ret_val;
 }

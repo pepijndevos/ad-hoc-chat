@@ -1,9 +1,6 @@
 /*
  * Routing.h
- *
- *  Created on: 9 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
+ *  group: 3
  */
 
 #ifndef ROUTING_H_
@@ -11,17 +8,18 @@
 
 #include<vector>
 #include<iostream>
+#include "Packet.h"
 
 class Routing {
 public:
 	Routing();
 	virtual ~Routing();
-	std::vector<int> received_data;
+        std::vector<Packet *pkt> received_data;
 
 private:
-	int incrementSeq(int seq);
-	bool isNew();
-	void forward();
+        void incrementSeq(Packet *pkt);
+        bool isNew(Packet *pkt);
+        void forward(Packet *pkt);
 };
 
 #endif /* ROUTING_H_ */

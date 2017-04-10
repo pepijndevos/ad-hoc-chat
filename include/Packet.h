@@ -14,6 +14,7 @@ struct packet_repr{
     int seq;
     int msg_id;
     int ack;
+    std::string sender_id;
     std::string flags;
     std::string payload;
     std::string checksum;
@@ -24,7 +25,7 @@ public:
     Packet();
 	virtual ~Packet();
 
-    void createPacket(std::string payload, int seq, int msg_id, int ack,
+    void createPacket(std::string payload, int seq, int msg_id, int ack, std::string sender_id,
                         bool connected, bool leader, bool vote, bool candidate);          // Return the packet
     void loadFromStruct(packet_repr payload);  // Load a packet
 
@@ -40,6 +41,7 @@ private:
 	int seq;
 	int msg_id;
 	int ack;
+    std::string sender_id;
     std::string flags;
     std::string payload;
     std::string checksum;

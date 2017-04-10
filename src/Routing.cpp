@@ -2,8 +2,7 @@
  * Routing.cpp
  *
  *  Created on: 9 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 1
+ *  group: 1
  */
 
 #include "Routing.h"
@@ -19,39 +18,41 @@ Routing::~Routing() {
 	// TODO Auto-generated destructor stub
 }
 
-int Routing::incrementSeq(int seq){
-	return seq+1;
-
+void Routing::incrementSeq(Packet *pkt){
+    /* Increment sequence number of packet */
+    packet_repr pkt_struct = pkt->getPacket();
+    pkt_struct.seq = pkt_struct.seq+1;
+    pkt->loadFromStruct(pkt_struct);
 }
 
-bool Routing::isNew(){
+bool Routing::isNew(Packet *pkt){
+    /* Check if a packet is new */
+    packet_repr pkt_struct = pkt->getPacket();
 
-	int pktcnt = 0; 	//set a counter to know how many packets are at the node.
+    for(auto p: received_data){
+        packet_repr temp_pkt_struct = p->getPacket();
+        if(pkt_struct.msg_id == temp_pkt_struct.msg_id
+                &&
+           pkt_struct.seq > temp_pkt_struct.seq
+        ){
+            // it is an old packet
+            return false;
+        }
+    }
 
-	//if the packet is new it should be stored in the received packets vector string.
-	//Here the whole packet with its contents is stored.
-
-	//for every node check if there is already a packet.
-
-	if(pktcnt == 1){
-		//if there is a packet, check for the sequence number.
-
-		if(){
-			//if the sequence number is higher, drop the packet.
-
-			//else add the packet to the received_data
-			std::string<char>received_data = Packet();
-		}
-	}
-	std::string<char>received_data = Packet();
-	pktcnt = 1;		//set pktcnt to 1. Now we know there is a packet at the node.
-	return true;
+    received_data.push_back(pkt);
+    return true;
 }
 
-void Routing::forward(){
-	//will determine which nodes should get the packet that is received from the sender. This means
-	//that this function should flood the packets to everyone except to the one that is was sended.
-	//Beware that the sequence number should also be increased.
+void Routing::forward(Packet *pkt){
+    //will determine which nodes should get the packet that is received from the sender. This means
+    //that this function should flood the packets to everyone except to the one that is was sent.
+    //Beware that the sequence number should also be increased.
+    incrementSeq(pkt);
 
+    if(isNew(pkt) == false)
+        return;
+
+    // TODO flood the packet to everyone that is needed
 
 }
