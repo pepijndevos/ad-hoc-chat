@@ -22,4 +22,5 @@ HEADERS += include/chatwindow.h \
     include/Packet.h \
     include/RaftNode.h \
     include/Routing.h \
-    include/Security.h
+    include/Security.h \
+    include/md5.h

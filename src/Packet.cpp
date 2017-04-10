@@ -6,14 +6,15 @@
 
 #include "Packet.h"
 
-Packet::Packet() :
+Packet::Packet():
 	seq(0),
 	msg_id(0),
     ack(0),
     sender_id("1"),
     payload(""),
-    checksum("")
-{}
+    checksum(""){
+
+}
 
 Packet::~Packet() {
 }
@@ -72,6 +73,7 @@ std::string Packet::createFlags(bool connected, bool leader, bool vote, bool can
 
 std::string Packet::getChecksum(){
     /* Calculate the checksum of the Packet */
-    // TODO ?
-    return "";
+    std::string ck = std::to_string(seq) + std::to_string(ack) + std::to_string(msg_id);
+    ck += flags + payload;
+    return Security::getMD5sum(ck);
 }
