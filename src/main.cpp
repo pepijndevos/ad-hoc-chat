@@ -17,13 +17,7 @@ int main(int argc, char *argv[])
     ChatWindow w;
     w.show();
 
-    // Initialize the Ad-hoc network
-    adhoc_setup(INTERFACE, GROUP, COMPUTER_ID);
-
     int ret_val = a.exec();
-
-    // Destroy the Ad-hoc network
-    adhoc_desetup(INTERFACE, GROUP);
 
     delete exec_name;
     return ret_val;

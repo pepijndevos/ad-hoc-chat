@@ -14,7 +14,7 @@ MULTICAST_SUBNET=228.0.0.0/8
 # Make sure only root can run our script
 if [ "$(id -u)" != "0" ]; then
    echo "This script must be run as root" 1>&2
-   echo "Example: sudo ./adhoc_setup" 1>&2
+   echo "Example for group-2 and computer-id 3: sudo ./adhoc_setup wlan0 2 3" 1>&2
    exit 1
 fi
 
