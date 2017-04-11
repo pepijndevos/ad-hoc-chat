@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
             });
     QObject::connect(&w, &ChatWindow::newMessage,
             &t, [&t](QString chatname, QString message) {
-                t.sendMessage(message.toUtf8());
+                t.sendString(message.toUtf8().constData());
             });
 
     //t.sendMessage("Hello world");

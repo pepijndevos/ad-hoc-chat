@@ -81,6 +81,19 @@ void Packet::getPacket(MessageProto::Message* proto){
         proto->add_flags(MessageProto::Message::CANDIDATE);
 }
 
+void Packet::loadFromProto(MessageProto::Message* proto){
+    /* Load packet from Protobuf */
+    seq = proto->seq();
+    msg_id = proto->msg_id();
+    sender_id = proto->sender_id();
+    checksum = proto->checksum();
+    payload = proto->payload();
+    flags = "0000";
+    for(int f=0; f < proto->flags_size(); f++){
+        flags[f] = proto->flags()[f];
+    }
+}
+
 std::string Packet::createFlags(bool connected, bool leader, bool vote, bool candidate){
     /* Create a flags string for the payload
      * Format:
