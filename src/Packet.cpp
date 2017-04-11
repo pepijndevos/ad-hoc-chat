@@ -89,9 +89,9 @@ void Packet::loadFromProto(MessageProto::Message* proto){
     checksum = proto->checksum();
     payload = proto->payload();
     flags = "0000";
-    for(int f=0; f < proto->flags_size(); f++){
+    /*for(int f=0; f < proto->flags_size(); f++){
         flags[f] = proto->flags()[f];
-    }
+    }*/
 }
 
 std::string Packet::createFlags(bool connected, bool leader, bool vote, bool candidate){

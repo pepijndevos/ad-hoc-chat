@@ -30,7 +30,6 @@ void Transceiver::processPendingDatagrams() {
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
         qDebug() << "Packet received" << source.toString();
-        emit messageReceived(source.toIPv4Address() & 0xff, datagram);
 
         // TODO: for now, it only gets the payload string
         MessageProto::Message msg = parseRecvd(datagram);

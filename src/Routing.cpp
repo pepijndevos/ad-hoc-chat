@@ -52,7 +52,7 @@ QByteArray Routing::forward(Packet *pkt){
     pkt->getPacket(&message);
     std::string payload = message.SerializeAsString();
 
-    std::cout << payload << " -> routed\n";
+    //std::cout << payload << " -> routed\n";
     QByteArray byteArray(payload.c_str(), payload.length());
     return byteArray;
 }
