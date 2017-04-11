@@ -11,6 +11,13 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
+    qDebug() << udpSocket->multicastInterface().name();
+    for (auto ifa : QNetworkInterface::allInterfaces()) {
+        qDebug() << ifa.name();
+    }
+    //udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName("wlan0"));
+    //qDebug() << udpSocket->multicastInterface().name();
+
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
 
@@ -23,6 +30,7 @@ void Transceiver::processPendingDatagrams()
         QHostAddress source;
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
+        qDebug() << "Packet received" << source.toString();
         emit messageReceived(source.toIPv4Address() & 0xff, datagram);
     }
 }
