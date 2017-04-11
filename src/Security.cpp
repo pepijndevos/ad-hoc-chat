@@ -26,7 +26,7 @@ std::string Security::getMD5sum(std::string str){
     strcpy(cstr, str.c_str());
 
     std::string ret_str = md5.digestString(cstr);
-    delete cstr;
+    delete[] cstr;
     return ret_str;
 }
 
@@ -37,6 +37,6 @@ std::string Security::getFileMD5(std::string path){
     strcpy(cstr, path.c_str());
 
     std::string ret_str = md5.digestFile(cstr);
-    delete cstr;
+    delete[] cstr;
     return ret_str;
 }

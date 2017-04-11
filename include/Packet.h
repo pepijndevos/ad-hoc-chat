@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include "Security.h"
+#include "Message.pb.h"
 
 struct packet_repr{
     int seq;
@@ -24,14 +25,20 @@ struct packet_repr{
 class Packet {
 public:
     Packet();
-	virtual ~Packet();
+    Packet(std::string payload, int seq, int msg_id, int ack, std::string sender_id,
+                   bool connected, bool leader, bool vote, bool candidate);
+
+    virtual ~Packet();
 
     void createPacket(std::string payload, int seq, int msg_id, int ack, std::string sender_id,
                         bool connected, bool leader, bool vote, bool candidate);          // Return the packet
-    void loadFromStruct(packet_repr payload);  // Load a packet
+    void loadFromStruct(packet_repr payload);         // Load a packet
+    void loadFromProto(MessageProto::Message* proto); // Load packet from Protobuf
 
-    packet_repr getPacket();        // Get the string representation of the packet
-    std::string createFlags(        // Create a flags string for the payload
+    packet_repr getPacket();                // Get the struct representation of the packet
+    void getPacket(MessageProto::Message* proto);    // Get the protobuf representation of the packet
+
+    std::string createFlags(                // Create a flags string for the payload
             bool connected, // Is the node connected
             bool leader,    // Is the node the leader
             bool vote,      // Is the node voting for this leader
@@ -46,7 +53,6 @@ private:
     std::string flags;
     std::string payload;
     std::string checksum;
-    struct repr;            // struct representation of the Packet
 };
 
 #endif /* PACKET_H_ */

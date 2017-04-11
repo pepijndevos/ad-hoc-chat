@@ -1,2 +1,5 @@
-
 *.user
+extern_libs/bin
+extern_libs/include
+extern_libs/lib
+

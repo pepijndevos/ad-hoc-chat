@@ -12,8 +12,12 @@ Packet::Packet():
     ack(0),
     sender_id("1"),
     payload(""),
-    checksum(""){
+    checksum(""){}
 
+Packet::Packet(std::string payload, int seq, int msg_id, int ack, std::string sender_id,
+               bool connected, bool leader, bool vote, bool candidate){
+    /* Constructor with initialisation */
+    createPacket(payload, seq, msg_id, ack, sender_id, connected, leader, vote, candidate);
 }
 
 Packet::~Packet() {
@@ -55,6 +59,39 @@ packet_repr Packet::getPacket(){
     p.payload = payload;
     p.checksum = checksum;
     return p;
+}
+
+void Packet::getPacket(MessageProto::Message* proto){
+    /* Get the MessageProto representation of the Packet */
+    proto->set_seq(seq);
+    proto->set_msg_id(msg_id);
+    proto->set_sender_id(sender_id);
+    proto->set_checksum(checksum);
+    proto->set_payload(payload);
+    if(flags[0] == '1')
+        proto->add_flags(MessageProto::Message::CONNECTED);
+
+    if(flags[1] == '1')
+        proto->add_flags(MessageProto::Message::LEADER);
+
+    if(flags[2] == '1')
+        proto->add_flags(MessageProto::Message::VOTE);
+
+    if(flags[3] == '1')
+        proto->add_flags(MessageProto::Message::CANDIDATE);
+}
+
+void Packet::loadFromProto(MessageProto::Message* proto){
+    /* Load packet from Protobuf */
+    seq = proto->seq();
+    msg_id = proto->msg_id();
+    sender_id = proto->sender_id();
+    checksum = proto->checksum();
+    payload = proto->payload();
+    flags = "0000";
+    /*for(int f=0; f < proto->flags_size(); f++){
+        flags[f] = proto->flags()[f];
+    }*/
 }
 
 std::string Packet::createFlags(bool connected, bool leader, bool vote, bool candidate){
