@@ -3,6 +3,7 @@
 #include <iostream>
 
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
+    /* Constructor */
     groupAddress = QHostAddress("228.0.0.1");
 
     udpSocket = new QUdpSocket(this);
@@ -15,8 +16,8 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     for (auto ifa : QNetworkInterface::allInterfaces()) {
         qDebug() << ifa.name();
     }
-    //udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName("wlan0"));
-    //qDebug() << udpSocket->multicastInterface().name();
+    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName("en0"));
+    qDebug() << udpSocket->multicastInterface().name();
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
@@ -24,6 +25,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
 }
 
 void Transceiver::processPendingDatagrams() {
+    /* Handle packet reception */
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         QHostAddress source;
@@ -46,11 +48,13 @@ MessageProto::Message Transceiver::parseRecvd(QByteArray datagram_data){
 }
 
 void Transceiver::sendMessage(QByteArray data) {
+    /* Send a byte array over the UDP socket */
     udpSocket->writeDatagram(data.data(), data.size(),
                              groupAddress, 10000);
 }
 
 void Transceiver::sendString(std::string data){
+    /* Send string data*/
     // TODO: Create actual packet instead of a dummy one.
     Packet pkt(data, 0, 0, 0, "1", true, false, false, false);
 

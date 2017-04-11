@@ -35,10 +35,10 @@ public:
     void loadFromStruct(packet_repr payload);         // Load a packet
     void loadFromProto(MessageProto::Message* proto); // Load packet from Protobuf
 
-    packet_repr getPacket();                // Get the struct representation of the packet
-    void getPacket(MessageProto::Message* proto);    // Get the protobuf representation of the packet
+    packet_repr getPacket();        // Get the struct representation of the packet
+    void getPacket(MessageProto::Message* proto);     // Get the protobuf representation of the packet
 
-    std::string createFlags(                // Create a flags string for the payload
+    std::string createFlags(        // Create a flags string for the payload
             bool connected, // Is the node connected
             bool leader,    // Is the node the leader
             bool vote,      // Is the node voting for this leader
