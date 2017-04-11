@@ -10,7 +10,10 @@ ChatWindow::ChatWindow(QWidget *parent) : QMainWindow(parent) {
 }
 
 void ChatWindow::addChat(QString name) {
-    ChatPanel *panel = new ChatPanel();
+    ChatPanel *panel = new ChatPanel(name, this);
+    connect(panel, &ChatPanel::newMessage,
+            this, &ChatWindow::newMessage);
+
     chats->insert(name, panel);
     tabs->addTab(panel, name);
 }
