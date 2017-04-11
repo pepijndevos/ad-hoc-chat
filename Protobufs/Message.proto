@@ -1,0 +1,18 @@
+package MessageProto;
+
+message Message {
+    optional int32 seq = 1;
+    optional int32 msg_id = 2;
+    optional string sender_id = 3;
+
+    enum Flags {
+        CONNECTED = 0;
+        LEADER = 1;
+        VOTE = 2;
+        CANDIDATE = 3;
+    }
+
+    repeated Flags flags = 4;
+    optional string checksum = 16;
+    optional string payload = 17;
+}

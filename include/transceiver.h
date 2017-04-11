@@ -6,7 +6,7 @@ class Transceiver : public QObject {
 
 public:
     explicit Transceiver(QObject *parent = 0);
-        
+
 public slots:
     void sendMessage(QByteArray data);
     void processPendingDatagrams();
