@@ -32,7 +32,8 @@ public:
 
     void createPacket(std::string payload, int seq, int msg_id, int ack, std::string sender_id,
                         bool connected, bool leader, bool vote, bool candidate);          // Return the packet
-    void loadFromStruct(packet_repr payload);  // Load a packet
+    void loadFromStruct(packet_repr payload);         // Load a packet
+    void loadFromProto(MessageProto::Message* proto); // Load packet from Protobuf
 
     packet_repr getPacket();                // Get the struct representation of the packet
     void getPacket(MessageProto::Message* proto);    // Get the protobuf representation of the packet

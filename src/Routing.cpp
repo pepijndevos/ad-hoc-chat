@@ -6,8 +6,6 @@
  */
 
 #include "Routing.h"
-#include <vector>
-#include "Packet.h"
 
 Routing::Routing() {
 }
@@ -41,15 +39,20 @@ bool Routing::isNew(Packet *pkt){
     return true;
 }
 
-void Routing::forward(Packet *pkt){
+QByteArray Routing::forward(Packet *pkt){
     //will determine which nodes should get the packet that is received from the sender. This means
     //that this function should flood the packets to everyone except to the one that is was sent.
     //Beware that the sequence number should also be increased.
     incrementSeq(pkt);
 
-    if(isNew(pkt) == false)
-        return;
+//    if(isNew(pkt) == false)       // TODO
+//        return QByteArray("", 0);
 
-    // TODO flood the packet to everyone that is needed
+    MessageProto::Message message;
+    pkt->getPacket(&message);
+    std::string payload = message.SerializeAsString();
 
+    std::cout << payload << " -> routed\n";
+    QByteArray byteArray(payload.c_str(), payload.length());
+    return byteArray;
 }
