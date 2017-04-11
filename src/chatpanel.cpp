@@ -2,7 +2,7 @@
 
 #include <QGridLayout> 
 
-ChatPanel::ChatPanel(QWidget *parent) : QWidget(parent) {
+ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(name) {
     QGridLayout *layout = new QGridLayout();
 
     chat = new QListWidget();
@@ -26,6 +26,7 @@ void ChatPanel::writeMessage(QString sender, QString message) {
 }
 
 void ChatPanel::sendMessage() {
-    writeMessage("Me", txt->text());
+    emit newMessage(chatName, txt->text());
+    //writeMessage("Me", txt->text());
     txt->clear();
 }

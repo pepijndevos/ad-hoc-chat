@@ -3,10 +3,11 @@
 #include <iostream>
 
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
-    std::cout << "running" << std::endl;
-    groupAddress = QHostAddress("239.255.43.21");
+    groupAddress = QHostAddress("228.0.0.1");
 
     udpSocket = new QUdpSocket(this);
+    udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 255);
+    //udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
@@ -19,9 +20,10 @@ void Transceiver::processPendingDatagrams()
 {
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
+        QHostAddress source;
         datagram.resize(udpSocket->pendingDatagramSize());
-        udpSocket->readDatagram(datagram.data(), datagram.size());
-        emit messageReceived(datagram);
+        udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
+        emit messageReceived(source.toIPv4Address() & 0xff, datagram);
     }
 }
 

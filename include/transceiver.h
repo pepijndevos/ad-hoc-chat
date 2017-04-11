@@ -11,7 +11,7 @@ public slots:
     void sendMessage(QByteArray data);
     void processPendingDatagrams();
 signals:
-    void messageReceived(QByteArray data);
+    void messageReceived(quint8 source, QByteArray data);
 
 private:
     QHostAddress groupAddress;
