@@ -6,3 +6,5 @@ moc_*
 extern_libs/bin
 extern_libs/include
 extern_libs/lib
+src/Message.pb.cc
+include/Message.pb.h

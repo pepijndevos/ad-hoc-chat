@@ -1,10 +1,12 @@
 package MessageProto;
 
 message Message {
-    optional int32 seq = 1;
-    optional int32 msg_id = 2;
-    optional string sender_id = 3;
+    // Message ID, sender and receiver node ID.
+    optional int32 msg_id = 1;
+    optional string sender = 2;
+    optional string receiver = 3;
 
+    // Raft flags
     enum Flags {
         CONNECTED = 0;
         LEADER = 1;
@@ -13,6 +15,10 @@ message Message {
     }
 
     repeated Flags flags = 4;
-    optional string checksum = 16;
-    optional string payload = 17;
+
+    // Checksum of the message
+    optional string checksum = 5;
+
+    // Data that is sent (text, image, etc...). This part might be encrypted for private chats.
+    optional bytes payload = 6;
 }

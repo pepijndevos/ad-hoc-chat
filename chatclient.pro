@@ -18,11 +18,11 @@ SOURCES += src/main.cpp\
            src/router.cpp \
            src/Packet.pb.cc \
            src/ChatMessage.pb.cc \
-#    src/Packet.cpp \
+           src/Message.cpp \
+           src/Message.pb.cc \
+           src/Security.cpp \
 #    src/RaftNode.cpp \
 #    src/Routing.cpp \
-#    src/Security.cpp \
-#    src/Message.pb.cc
 
 HEADERS += include/chatwindow.h \
            include/chatpanel.h \
@@ -30,12 +30,14 @@ HEADERS += include/chatwindow.h \
            include/router.h \
            include/Packet.pb.h \
            include/ChatMessage.pb.h \
-#           include/Packet.h \
+           include/Message.h \
+           include/Message.pb.h \
+           include/Security.h \
+           include/md5.h \
 #           include/RaftNode.h \
 #    include/Routing.h \
-#    include/Security.h \
-#    include/md5.h \
-#    include/Message.pb.h
 
 DISTFILES += \
-    Message.proto
+    Message.proto \
+    Packet.proto \
+    ChatMessage.proto
