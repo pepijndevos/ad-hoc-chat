@@ -17,10 +17,10 @@ SOURCES += src/main.cpp\
            src/transceiver.cpp \
            src/router.cpp \
            src/Packet.pb.cc \
-           src/ChatMessage.pb.cc \
-           src/Message.cpp \
            src/Message.pb.cc \
+           src/RaftMessage.pb.cc \
            src/Security.cpp \
+#           src/Message.cpp \
 #    src/RaftNode.cpp \
 #    src/Routing.cpp \
 
@@ -29,11 +29,11 @@ HEADERS += include/chatwindow.h \
            include/transceiver.h \
            include/router.h \
            include/Packet.pb.h \
-           include/ChatMessage.pb.h \
-           include/Message.h \
            include/Message.pb.h \
+           include/RaftMessage.pb.h \
            include/Security.h \
            include/md5.h \
+#           include/Message.h \
 #           include/RaftNode.h \
 #    include/Routing.h \
 

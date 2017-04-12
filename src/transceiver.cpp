@@ -9,7 +9,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
 
     udpSocket = new QUdpSocket(this);
     udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 255);
-    //udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 

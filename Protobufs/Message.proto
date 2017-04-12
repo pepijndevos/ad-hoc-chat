@@ -3,8 +3,8 @@ syntax = "proto3";
 package pb;
 
 message Message {
-    string name = 0;     // Sender's name
-    string receiver = 1; // Receiver's name
-    string text = 2;     // Text data
-    bytes file_data = 3; // File data
+    string name = 1;     // Sender's name
+    string receiver = 2; // Receiver's name
+    string text = 3;     // Text data
+    bytes file_data = 4; // File data
 }
