@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package pb;
+
+message Packet {
+    enum Type {
+        MESSAGE = 0;
+        FILE = 1;
+        PRESENCE = 2;
+        ACK = 3;
+        RAFT = 4;
+    }
+    Type message_type = 1;
+    uint32 sequence_number = 2;
+    uint32 acknowledgement_number = 3;
+    uint32 sender_ip = 4;
+    repeated uint32 receiver_ip = 5;
+    uint32 ttl = 6; // hop count, probably 1 or 2
+    google.protobuf.Any payload = 7; // Can be any other protobuf
+}

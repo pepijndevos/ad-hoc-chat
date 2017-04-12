@@ -23,6 +23,7 @@ ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(
 void ChatPanel::writeMessage(QString sender, QString message) {
     QString label = QString("%1: %2").arg(sender, message);
     new QListWidgetItem(label, chat);
+    chat->scrollToBottom();
 }
 
 void ChatPanel::sendMessage() {
