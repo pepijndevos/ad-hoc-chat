@@ -18,7 +18,6 @@ signals:
     void messageReceived(pb::Packet);
 
 private:
-    unsigned int sequence_number;
     QHostAddress groupAddress;
     QUdpSocket *udpSocket;
 };

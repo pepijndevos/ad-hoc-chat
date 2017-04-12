@@ -15,6 +15,7 @@ SOURCES += src/main.cpp\
            src/chatwindow.cpp \
            src/chatpanel.cpp \
            src/transceiver.cpp \
+           src/router.cpp \
            src/Packet.pb.cc \
            src/ChatMessage.pb.cc \
 #    src/Packet.cpp \
@@ -26,6 +27,7 @@ SOURCES += src/main.cpp\
 HEADERS += include/chatwindow.h \
            include/chatpanel.h \
            include/transceiver.h \
+           include/router.h \
            include/Packet.pb.h \
            include/ChatMessage.pb.h \
 #           include/Packet.h \

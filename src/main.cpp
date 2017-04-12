@@ -1,5 +1,6 @@
 #include "chatwindow.h"
 #include "transceiver.h"
+#include "router.h"
 #include "Packet.pb.h"
 #include "ChatMessage.pb.h"
 #include <string>
@@ -10,13 +11,14 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     ChatWindow w;
     Transceiver t;
+    Router r(&t);
 
     w.addChat("Group Chat");
     //w.writeMessage("Group Chat", "bar", "baz");
 
     w.show();
 
-    QObject::connect(&t, &Transceiver::messageReceived,
+    QObject::connect(&r, &Router::messageReceived,
             &w, [&w](pb::Packet p) {
                 pb::ChatMessage msg;
                 p.payload().UnpackTo(&msg);
@@ -25,14 +27,14 @@ int main(int argc, char *argv[])
                         QString::fromStdString(msg.text()));
             });
     QObject::connect(&w, &ChatWindow::newMessage,
-            &t, [&t](QString chatname, QString message) {
+            &r, [&r](QString chatname, QString message) {
                 pb::Packet p;
                 pb::ChatMessage msg;
                 msg.set_name(chatname.toStdString());
                 msg.set_text(message.toStdString());
                 p.mutable_payload()->PackFrom(msg);
                 p.set_message_type(pb::Packet::MESSAGE);
-                t.sendMessage(p);
+                r.sendMessage(p);
             });
 
     //t.sendMessage("Hello world");

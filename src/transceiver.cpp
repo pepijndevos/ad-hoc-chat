@@ -5,7 +5,6 @@
 
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     /* Constructor */
-    sequence_number = 0;
     groupAddress = QHostAddress("228.0.0.1");
 
     udpSocket = new QUdpSocket(this);
@@ -52,7 +51,6 @@ void Transceiver::sendMessage(pb::Packet pkt) {
     QByteArray datagram;
     int size = pkt.ByteSizeLong();
     datagram.resize(size);
-    pkt.set_sequence_number(sequence_number++);
     pkt.SerializeToArray(datagram.data(), size);
     udpSocket->writeDatagram(datagram.data(), datagram.size(),
                              groupAddress, 10000);
