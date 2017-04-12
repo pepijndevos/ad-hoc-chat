@@ -1,16 +1,16 @@
 syntax = "proto3";
 
-import "google/protobuf/any.proto";
+import "RaftMessage.proto";
+import "Message.proto";
 
 package pb;
 
 message Packet {
     enum Type {
-        MESSAGE = 0;
-        FILE = 1;
-        PRESENCE = 2;
-        ACK = 3;
-        RAFT = 4;
+        PRESENCE = 0;
+        ACK = 1;
+        RAFT = 2;
+        MESSAGE = 3; // TODO delete once raft works
     }
     Type message_type = 1;
     uint32 sequence_number = 2;
@@ -19,5 +19,11 @@ message Packet {
     repeated uint32 receiver_ip = 5;
     uint32 ttl = 6; // hop count, probably 1 or 2
 
-    google.protobuf.Any payload = 7; // Can be any other protobuf
+    RaftMessage raft_msg = 7;
+    // Checksum of the message
+    bytes checksum = 8;
+    
+    // once raft works, the raft message will contain
+    // the actual message. Until then, we can bypass it.
+    Message msg = 9; 
 }
