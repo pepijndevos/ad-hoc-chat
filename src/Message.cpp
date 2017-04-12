@@ -6,102 +6,54 @@
 
 #include "Message.h"
 
-Message::Message():
-    msg_id(0),
-    sender(""),
-    payload(""),
-    checksum(""){
+Message::Message(){
     /* Default constructor */
-    flags = createFlags(false, false, false, false);
+    name = "";
+    receiver = "";
+    text = "";
+    *file_data = "";
 }
 
-Message::Message(std::string payload, int msg_id, std::string sender, std::string receiver,
-               bool connected, bool leader, bool vote, bool candidate){
+Message::Message(std::string name, std::string receiver, std::string text, std::string *file_data){
     /* Constructor with initialisation */
-    createMessage(payload, msg_id, sender, receiver, connected, leader, vote, candidate);
+    createMessage(name, receiver, text, file_data);
 }
 
 Message::~Message() {
 }
 
-void Message::createMessage(std::string payload, int msg_id, std::string sender, std::string receiver,
-                          bool connected, bool leader, bool vote, bool candidate){
+void Message::createMessage(std::string name, std::string receiver, std::string text, std::string *file_data){
     /* Load the Message Data */
-    this->payload = payload;
-    this->msg_id = msg_id;
-    this->sender = sender;
+    this->text = text;
+    this->name = name;
     this->receiver = receiver;
-    this->flags = createFlags(connected, leader, vote, candidate);
-    this->checksum = getChecksum();
+    this->file_data = file_data;
 }
 
-void Message::getMessage(MessageProto::Message* proto){
+void Message::getMessage(pb::Message* proto){
     /* Get the MessageProto representation of the Message */
-    proto->set_msg_id(msg_id);
-    proto->set_sender(sender);
-    proto->set_checksum(checksum);
-    proto->set_payload(payload);
-
-    // Flags order: connected->leader->vote->candidate
-    if(flags.connected)
-        proto->add_flags(MessageProto::Message::CONNECTED);
-
-    if(flags.leader)
-        proto->add_flags(MessageProto::Message::LEADER);
-
-    if(flags.vote)
-        proto->add_flags(MessageProto::Message::VOTE);
-
-    if(flags.candidate)
-        proto->add_flags(MessageProto::Message::CANDIDATE);
+    proto->set_name(name);
+    proto->set_receiver(receiver);
+    proto->set_text(text);
+    proto->set_file_data(*file_data);
 }
 
-void Message::loadFromProto(MessageProto::Message* proto){
+void Message::loadFromProto(pb::Message* proto){
     /* Load Message from Protobuf */
-    msg_id = proto->msg_id();
-    sender = proto->sender();
-    checksum = proto->checksum();
-    payload = proto->payload();
-
-    // Load flags
-    flags = createFlags(false, false, false, false);
-    for(int f=0; f < proto->flags_size(); f++){
-        switch (proto->flags(f)){
-            case MessageProto::Message::CONNECTED:
-                flags.connected = true;
-                break;
-            case MessageProto::Message::LEADER:
-                flags.leader = true;
-                break;
-            case MessageProto::Message::VOTE:
-                flags.vote = true;
-                break;
-            case MessageProto::Message::CANDIDATE:
-                flags.candidate = true;
-                break;
-            default:
-                break;
-        }
-    }
+    name = proto->name();
+    receiver = proto->receiver();
+    text = proto->text();
+    *file_data = proto->file_data();
 }
 
-Flags Message::createFlags(bool connected, bool leader, bool vote, bool candidate){
-    /* Create a flags struct */
-    Flags rt_obj;
-    rt_obj.connected = connected;
-    rt_obj.leader = leader;
-    rt_obj.vote = vote;
-    rt_obj.candidate = candidate;
+MessageType Message::getType(){
+    /* Get the type of the message */
+    MessageType rt_obj;
+    if(text.length() > 0)
+        rt_obj.has_text = true;
+
+    if(file_data->size() > 0)
+        rt_obj.has_raw = true;
+
     return rt_obj;
-}
-
-std::string Message::getChecksum(){
-    /* Calculate the checksum of the Message */
-    std::string ck = std::to_string(msg_id) + payload + sender + receiver;
-    ck += flags.connected ? "1" : "0";
-    ck += flags.leader ? "1" : "0";
-    ck += flags.vote ? "1" : "0";
-    ck += flags.candidate ? "1" : "0";
-
-    return Security::getMD5sum(ck);
 }
