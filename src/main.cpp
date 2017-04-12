@@ -35,12 +35,17 @@ int main(int argc, char *argv[])
             });
     QObject::connect(&w, &ChatWindow::newMessage,
             &r, [&r](QString chatname, QString message) {
+                QSettings settings;
                 pb::Packet p;
                 pb::Message *msg = p.mutable_msg();
-                QString name = QSettings().value("name", "Me").toString();
+                QString name = settings.value("name", "Me").toString();
                 msg->set_name(name.toStdString());
                 msg->set_text(message.toStdString());
                 p.set_message_type(pb::Packet::MESSAGE);
+                p.add_receiver_ip(QHostAddress("192.168.5.1").toIPv4Address());
+                p.add_receiver_ip(QHostAddress("192.168.5.2").toIPv4Address());
+                p.add_receiver_ip(QHostAddress("192.168.5.3").toIPv4Address());
+                p.add_receiver_ip(QHostAddress("192.168.5.4").toIPv4Address());
                 r.sendMessage(p);
             });
 
