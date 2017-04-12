@@ -3,6 +3,7 @@
 #include <iostream>
 
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
+    sequence_number = 0;
     groupAddress = QHostAddress("228.0.0.1");
 
     udpSocket = new QUdpSocket(this);
@@ -11,7 +12,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
-    qDebug() << udpSocket->multicastInterface().name();
+    //qDebug() << udpSocket->multicastInterface().name();
     for (auto ifa : QNetworkInterface::allInterfaces()) {
         qDebug() << ifa.name();
     }
@@ -31,33 +32,19 @@ void Transceiver::processPendingDatagrams() {
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
         qDebug() << "Packet received" << source.toString();
 
-        // TODO: for now, it only gets the payload string
-        MessageProto::Message msg = parseRecvd(datagram);
+        pb::Packet pkt;
+        pkt.ParseFromArray(datagram.data(), datagram.size());
 
-        emit messageReceived(source.toIPv4Address() & 0xff, msg.payload().c_str());
+        emit messageReceived(pkt);
     }
 }
 
-MessageProto::Message Transceiver::parseRecvd(QByteArray datagram_data){
-    /* Deserializes the received protobuf */
-    MessageProto::Message msg;
-    msg.ParseFromArray(datagram_data, datagram_data.size());
-    return msg;
-}
-
-void Transceiver::sendMessage(QByteArray data) {
-    udpSocket->writeDatagram(data.data(), data.size(),
+void Transceiver::sendMessage(pb::Packet pkt) {
+    QByteArray datagram;
+    int size = pkt.ByteSizeLong();
+    datagram.resize(size);
+    pkt.set_sequence_number(sequence_number++);
+    pkt.SerializeToArray(datagram.data(), size);
+    udpSocket->writeDatagram(datagram.data(), datagram.size(),
                              groupAddress, 10000);
-}
-
-void Transceiver::sendString(std::string data){
-    // TODO: Create actual packet instead of a dummy one.
-    Packet pkt(data, 0, 0, 0, "1", true, false, false, false);
-
-    QByteArray d = router.forward(&pkt);
-    if(d.length() == 0){
-        return;
-    }
-
-    sendMessage(d);
 }
