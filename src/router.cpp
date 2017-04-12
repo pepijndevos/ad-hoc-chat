@@ -25,31 +25,36 @@ void Router::sendMessage(pb::Packet p) {
 }
 
 void Router::routeMessage(pb::Packet p) {
-    QPair<quint32, quint32> msgid(p.sender_ip(), p.sequence_number());
-    if (seen->contains(msgid)) return;
-    seen->insert(msgid);
+    //if (p.sender_ip() == my_ip) return;
 
     bool to_me = false;
     for(auto ip : p.receiver_ip()) {
         if(ip == my_ip) to_me = true;
     }
 
-    if (p.ttl() > 0) {
-        flood(p);
+    if (to_me) {
+        if (p.message_type() == pb::Packet::ACK) {
+            handleAck(p);
+        } else {
+            pb::Packet ack;
+            ack.set_message_type(pb::Packet::ACK);
+            ack.set_acknowledgment_number(p.sequence_number());
+            ack.set_ttl(1); // only forward once
+            ack.set_sender_ip(my_ip);
+            ack.add_receiver_ip(p.sender_ip());
+
+            transceiver->sendMessage(ack);
+
+            QPair<quint32, quint32> msgid(p.sender_ip(), p.sequence_number());
+            if (!seen->contains(msgid)) {
+                seen->insert(msgid);
+                emit messageReceived(p);
+            }
+        }
     }
 
-    if (p.message_type() == pb::Packet::ACK) {
-        handleAck(p);
-    } else if (to_me){
-        emit messageReceived(p);
-
-        pb::Packet ack;
-        ack.set_message_type(pb::Packet::ACK);
-        ack.set_acknowledgment_number(p.sequence_number());
-        ack.set_ttl(1); // only forward once
-        ack.set_sender_ip(my_ip);
-
-        transceiver->sendMessage(ack);
+    if (p.ttl() > 0) {
+        flood(p);
     }
 }
 

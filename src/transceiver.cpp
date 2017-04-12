@@ -6,7 +6,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
 
     udpSocket = new QUdpSocket(this);
     udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 255);
-    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
@@ -27,10 +27,11 @@ void Transceiver::processPendingDatagrams() {
         QHostAddress source;
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
-        qDebug() << "Packet received" << source.toString();
 
         pb::Packet pkt;
         pkt.ParseFromArray(datagram.data(), datagram.size());
+
+        qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
 
         emit messageReceived(pkt);
     }
