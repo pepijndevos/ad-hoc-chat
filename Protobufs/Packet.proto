@@ -18,6 +18,7 @@ message Packet {
     uint32 sender_ip = 4;
     repeated uint32 receiver_ip = 5;
     uint32 ttl = 6; // hop count, probably 1 or 2
+
     RaftMessage raft_msg = 7;
     // Checksum of the message
     bytes checksum = 8;

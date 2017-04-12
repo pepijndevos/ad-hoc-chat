@@ -40,4 +40,5 @@ HEADERS += include/chatwindow.h \
 DISTFILES += \
     Message.proto \
     Packet.proto \
-    ChatMessage.proto
+    ChatMessage.proto \
+    Protobufs/Raft.proto
