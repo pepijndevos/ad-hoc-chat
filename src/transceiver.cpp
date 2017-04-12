@@ -1,8 +1,10 @@
 #include "transceiver.h"
 
+#include <QTextStream>
 #include <iostream>
 
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
+    /* Constructor */
     sequence_number = 0;
     groupAddress = QHostAddress("228.0.0.1");
 
@@ -12,12 +14,18 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
+    QTextStream qout(stdout);
     //qDebug() << udpSocket->multicastInterface().name();
     for (auto ifa : QNetworkInterface::allInterfaces()) {
-        qDebug() << ifa.name();
+        qout << ifa.name() << " " << ifa.index() << "\n";
     }
-    //udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName("wlan0"));
-    //qDebug() << udpSocket->multicastInterface().name();
+    int idx;
+    qout << "Enter the interface nubmer to use: ";
+    qout.flush();
+    std::cin >> idx;
+    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromIndex(idx));
+    qout << "Using " << udpSocket->multicastInterface().name() << "\n";
+    qout.flush();
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
@@ -25,6 +33,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
 }
 
 void Transceiver::processPendingDatagrams() {
+    /* Handle packet reception */
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         QHostAddress source;
