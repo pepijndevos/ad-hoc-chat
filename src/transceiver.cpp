@@ -1,8 +1,5 @@
 #include "transceiver.h"
 
-#include <QTextStream>
-#include <iostream>
-
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     /* Constructor */
     groupAddress = QHostAddress("228.0.0.1");
@@ -13,18 +10,10 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
-    QTextStream qout(stdout);
-    //qDebug() << udpSocket->multicastInterface().name();
-    for (auto ifa : QNetworkInterface::allInterfaces()) {
-        qout << ifa.name() << " " << ifa.index() << "\n";
-    }
-    int idx;
-    qout << "Enter the interface nubmer to use: ";
-    qout.flush();
-    std::cin >> idx;
-    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromIndex(idx));
-    qout << "Using " << udpSocket->multicastInterface().name() << "\n";
-    qout.flush();
+    QSettings settings;
+    QString name = settings.value("interface").toString();
+    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName(name));
+    qDebug() << udpSocket->multicastInterface().name();
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
