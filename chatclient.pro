@@ -20,7 +20,7 @@ SOURCES += src/main.cpp\
            src/Message.pb.cc \
            src/RaftMessage.pb.cc \
            src/Security.cpp \
-#           src/Message.cpp \
+           src/Message.cpp \
 #    src/RaftNode.cpp \
 #    src/Routing.cpp \
 
@@ -33,7 +33,7 @@ HEADERS += include/chatwindow.h \
            include/RaftMessage.pb.h \
            include/Security.h \
            include/md5.h \
-#           include/Message.h \
+           include/Message.h \
 #           include/RaftNode.h \
 #    include/Routing.h \
 
