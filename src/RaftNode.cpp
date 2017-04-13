@@ -91,7 +91,7 @@ void RaftNode::messageReceived(Packet rcv_message){
 // chose how is the leader
 void RaftNode::electLeader(){
 	if(is_candidate){
-		time_t time_now;
+		time_t time_now=time(0);
 		if((is_waiting && time_now-wait_time>WAIT_EXPIRE) || vote >= MAX_NODES/2){
 			if(vote >= MAX_NODES/2){		// I got the most votes, I am now the leader
 				is_leader=true;

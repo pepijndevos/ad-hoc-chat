@@ -23,6 +23,7 @@ SOURCES += src/main.cpp\
            src/Message.cpp \
 #    src/RaftNode.cpp \
 #    src/Routing.cpp \
+    src/Raft.cpp
 
 HEADERS += include/chatwindow.h \
            include/chatpanel.h \
@@ -36,9 +37,10 @@ HEADERS += include/chatwindow.h \
            include/Message.h \
 #           include/RaftNode.h \
 #    include/Routing.h \
+    include/Raft.h
 
 DISTFILES += \
     Message.proto \
     Packet.proto \
     ChatMessage.proto \
-    Protobufs/Raft.proto
+    Protobufs/RaftMessage.proto
