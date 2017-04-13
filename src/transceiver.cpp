@@ -49,7 +49,7 @@ void Transceiver::processPendingDatagrams() {
 
 void Transceiver::sendMessage(pb::Packet pkt) {
     QByteArray datagram;
-    int size = pkt.ByteSizeLong();
+    int size = pkt.ByteSize();
     datagram.resize(size);
     pkt.SerializeToArray(datagram.data(), size);
     udpSocket->writeDatagram(datagram.data(), datagram.size(),
