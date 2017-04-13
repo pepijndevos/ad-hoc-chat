@@ -5,6 +5,7 @@ package pb;
 message Message {
     string name = 1;     // Sender's name
     string receiver = 2; // Receiver's name
+    string chatname = 7; // The chat this message belongs to
     bytes data = 3;      // Data
     bool is_file = 4;    // Is it a file?
 
