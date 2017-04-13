@@ -1,4 +1,5 @@
 #include <QObject>
+#include <QHash>
 #include "chatwindow.h"
 #include "router.h"
 
@@ -11,6 +12,10 @@ public:
 public slots:
     void handleMessage(pb::Packet p);
     void sendMessage(QString chatname, QString message);
+    void notifyPresence();
+
+signals:
+    void isOnline(QList<quint32> online);
 
 private:
     Router* router;
@@ -18,4 +23,5 @@ private:
     quint32 my_ip;
     QString ip_str;
     QString name;
+    QHash<quint32, quint32> *online;
 };

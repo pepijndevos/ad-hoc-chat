@@ -2,7 +2,6 @@
 #include <QTimer>
 
 Router::Router(Transceiver *t, QObject *parent) : QObject(parent), transceiver(t) {
-    sequence_number = 0;
     pending = new QHash<unsigned int, pb::Packet>();
     seen = new QSet<QPair<quint32, quint32>>();
     connect(t, &Transceiver::messageReceived,
@@ -14,7 +13,7 @@ Router::Router(Transceiver *t, QObject *parent) : QObject(parent), transceiver(t
 }
 
 void Router::sendMessage(pb::Packet p) {
-    unsigned int sn = sequence_number++;
+    unsigned int sn = rand();
     p.set_sequence_number(sn);
     p.set_ttl(1); // only forward once
 
@@ -25,9 +24,10 @@ void Router::sendMessage(pb::Packet p) {
 }
 
 void Router::routeMessage(pb::Packet p) {
-    if (p.sender_ip() == my_ip) return;
+    //if (p.sender_ip() == my_ip) return;
 
-    bool to_me = false;
+    // no destination == for everyone
+    bool to_me = p.receiver_ip_size() == 0;
     for(auto ip : p.receiver_ip()) {
         if(ip == my_ip) to_me = true;
     }

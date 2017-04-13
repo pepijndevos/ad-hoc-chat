@@ -25,7 +25,6 @@ signals:
 private:
     void handleAck(pb::Packet);
     void flood(pb::Packet);
-    unsigned int sequence_number;
     quint32 my_ip;
     Transceiver *transceiver;
     QHash<unsigned int, pb::Packet> *pending;

@@ -1,15 +1,23 @@
 #include "chatmanager.h"
 
+#include <QMutableHashIterator> 
+
 ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(parent), router(r), chatwindow(w) {
     QSettings settings;
     name = settings.value("name", "Me").toString();
     ip_str = settings.value("ip").toString();
     my_ip = QHostAddress(ip_str).toIPv4Address();
+    online = new QHash<quint32, quint32>();
 
     QObject::connect(r, &Router::messageReceived,
                      this, &ChatManager::handleMessage);
     QObject::connect(w, &ChatWindow::newMessage,
                      this, &ChatManager::sendMessage);
+
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout,
+            this, &ChatManager::notifyPresence);
+    timer->start(5000);
 
     w->addChat("Group Chat");
     w->addChat("192.168.5.1");
@@ -26,6 +34,8 @@ void ChatManager::handleMessage(pb::Packet p) {
             QString::fromStdString(msg.chatname()),
             QString::fromStdString(msg.name()),
             QString::fromStdString(msg.data()));
+    } else if (p.message_type() == pb::Packet::PRESENCE) {
+        online->insert(p.sender_ip(), 3);
     }
 }
 
@@ -51,3 +61,17 @@ void ChatManager::sendMessage(QString chatname, QString message) {
     router->sendMessage(p);
 }
 
+void ChatManager::notifyPresence() {
+    pb::Packet p;
+    p.set_message_type(pb::Packet::PRESENCE);
+    p.set_sender_ip(my_ip);
+    router->sendMessage(p);
+    
+    QMutableHashIterator<quint32, quint32> i(*online);
+    while (i.hasNext()) {
+        i.next();
+        i.setValue(i.value()-1);
+        if(i.value() == 0) i.remove();
+    }
+    emit isOnline(online->keys());
+}

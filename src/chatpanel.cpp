@@ -28,6 +28,6 @@ void ChatPanel::writeMessage(QString sender, QString message) {
 
 void ChatPanel::sendMessage() {
     emit newMessage(chatName, txt->text());
-    //writeMessage("Me", txt->text());
+    writeMessage("Me", txt->text());
     txt->clear();
 }
