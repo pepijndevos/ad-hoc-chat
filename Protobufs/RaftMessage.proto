@@ -25,6 +25,4 @@ message RaftMessage {
     string sender_ip = 6;
     string receiver_ip = 7;
     int32 index = 8;
-
-    Message payload = 9;
 }
