@@ -1,5 +1,4 @@
 #include "chatpanel.h"
-
 #include <QGridLayout> 
 
 ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(name) {
@@ -11,7 +10,7 @@ ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(
     layout->addWidget(btn, 1, 1);
     txt = new QLineEdit();
     layout->addWidget(txt, 1, 0);
-    
+
     setLayout(layout);
 
     connect(btn, &QPushButton::clicked,

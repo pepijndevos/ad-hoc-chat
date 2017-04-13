@@ -20,14 +20,8 @@ int main(int argc, char *argv[])
     Transceiver t;
     Router r(&t);
     ChatManager m(&r, &w);
-
     settings.setValue("dummy", "add your ip and interface here");
 
-    //w.addChat("Group Chat");
-    //w.writeMessage("Group Chat", "bar", "baz");
-
     w.show();
-
-    //t.sendMessage("Hello world");
     return a.exec();
 }
