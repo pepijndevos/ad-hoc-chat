@@ -25,7 +25,7 @@ void Router::sendMessage(pb::Packet p) {
 }
 
 void Router::routeMessage(pb::Packet p) {
-    //if (p.sender_ip() == my_ip) return;
+    if (p.sender_ip() == my_ip) return;
 
     bool to_me = false;
     for(auto ip : p.receiver_ip()) {

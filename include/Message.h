@@ -9,34 +9,36 @@
 
 #include <vector>
 #include <string>
-#include <QWidget>
 #include "Security.h"
 #include "Message.pb.h"
-
-struct MessageType {
-    bool has_text;
-    bool has_raw;
-};
+#include "Packet.pb.h"
 
 class Message {
 public:
     Message();
 
-    Message(std::string name, std::string receiver, std::string text, std::string *file_data);
+    Message(std::string name, std::string receiver, std::string *data, bool is_file);
 
     virtual ~Message();
 
-    void createMessage(std::string name, std::string receiver, std::string text, std::string *file_data); // Loads the data for the Message
+    // Loads the data for the Message
+    void createMessage(std::string name, std::string receiver, std::string *data, bool is_file);
 
     void loadFromProto(pb::Message* proto); // Load Message from Protobuf
     void getMessage(pb::Message* proto);    // Get the Protobuf representation of the Message
 
-    MessageType getType();
+    // Split the message into messages of max_msg_length payloads
+    void splitForRaft(std::vector<pb::Message> *ret_obj, int max_msg_length);
+
+    // Assemble the received messages
+    bool assembleMessage(std::vector<pb::Message> *msgs);
+
+    bool isFile();   // If the message includes text, or byte stream
 private:
     std::string name;
-    std::string text;
+    std::string *data;
     std::string receiver;
-    std::string *file_data;
+    bool is_file;
 };
 
 #endif /* MESSAGE_H_ */
