@@ -26,5 +26,7 @@ message RaftMessage {
     string receiver_ip = 7;
     int32 index = 8;
 
-    Message payload = 9;
+    // Payload is an alias for the data field
+    option allow_alias = true;
+    Message payload = 2;
 }
