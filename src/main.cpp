@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
                 pb::Message msg = p.msg();
                 w.writeMessage("Group Chat",
                         QString::fromStdString(msg.name()),
-                        QString::fromStdString(msg.text()));
+                        QString::fromStdString(msg.data()));
             });
     QObject::connect(&w, &ChatWindow::newMessage,
             &r, [&r](QString chatname, QString message) {
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
                 QString name = settings.value("name", "Me").toString();
                 QString ip = settings.value("ip", "192.168.1.255").toString();
                 msg->set_name(name.toStdString());
-                msg->set_text(message.toStdString());
+                msg->set_data(message.toStdString());
                 p.set_message_type(pb::Packet::MESSAGE);
                 p.set_sender_ip(QHostAddress(ip).toIPv4Address());
                 p.add_receiver_ip(QHostAddress("192.168.5.1").toIPv4Address());
