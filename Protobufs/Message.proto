@@ -5,6 +5,12 @@ package pb;
 message Message {
     string name = 1;     // Sender's name
     string receiver = 2; // Receiver's name
-    string text = 3;     // Text data
-    bytes file_data = 4; // File data
+    bytes data = 3;      // Data
+    bool is_file = 4;    // Is it a file?
+
+    // Fragmentation
+    bool more = 5;       // If the message is fragmented
+
+    // Which is the order of this message (1st, 2nd etc..) - starting from 0
+    int32 msg_seq = 6;
 }

@@ -1,30 +1,19 @@
 #include "transceiver.h"
 
-#include <QTextStream>
-#include <iostream>
-
 Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     /* Constructor */
     groupAddress = QHostAddress("228.0.0.1");
 
     udpSocket = new QUdpSocket(this);
     udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 255);
-    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
     udpSocket->bind(QHostAddress::AnyIPv4, 10000, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
-    QTextStream qout(stdout);
-    //qDebug() << udpSocket->multicastInterface().name();
-    for (auto ifa : QNetworkInterface::allInterfaces()) {
-        qout << ifa.name() << " " << ifa.index() << "\n";
-    }
-    int idx;
-    qout << "Enter the interface nubmer to use: ";
-    qout.flush();
-    std::cin >> idx;
-    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromIndex(idx));
-    qout << "Using " << udpSocket->multicastInterface().name() << "\n";
-    qout.flush();
+    QSettings settings;
+    QString name = settings.value("interface").toString();
+    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName(name));
+    qDebug() << udpSocket->multicastInterface().name();
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
@@ -38,10 +27,11 @@ void Transceiver::processPendingDatagrams() {
         QHostAddress source;
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
-        qDebug() << "Packet received" << source.toString();
 
         pb::Packet pkt;
         pkt.ParseFromArray(datagram.data(), datagram.size());
+
+        qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
 
         emit messageReceived(pkt);
     }

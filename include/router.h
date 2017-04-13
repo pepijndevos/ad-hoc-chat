@@ -1,4 +1,8 @@
 #include <QObject>
+#include <QHash>
+#include <QSet>
+#include <QPair>
+#include <QHostAddress>
 #include "transceiver.h"
 
 class Router : public QObject {
@@ -11,6 +15,8 @@ public slots:
     void sendMessage(pb::Packet);
     void routeMessage(pb::Packet);
 
+    void retransmit(unsigned int sn);
+
 signals:
     void messageReceived(pb::Packet);
 
@@ -18,5 +24,8 @@ private:
     void handleAck(pb::Packet);
     void flood(pb::Packet);
     unsigned int sequence_number;
+    quint32 my_ip;
     Transceiver *transceiver;
+    QHash<unsigned int, pb::Packet> *pending;
+    QSet<QPair<quint32, quint32>> *seen;
 };
