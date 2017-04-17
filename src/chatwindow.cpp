@@ -1,7 +1,5 @@
 #include "chatwindow.h"
 
-#include <QTabWidget>
-
 ChatWindow::ChatWindow(QWidget *parent) : QMainWindow(parent) {
     tabs = new QTabWidget(this);
     chats = new QHash<QString, ChatPanel*>();
@@ -106,6 +104,25 @@ std::vector<QString> ChatWindow::getChatNames(){
     return names;
 }
 
+void ChatWindow::setChatIconSizes(QSize size){
+    /* Set the default icon size of each chat panel */
+    QHash<QString, ChatPanel*>::iterator c;
+    for (c = chats->begin(); c != chats->end(); ++c){
+        c.value()->setIconSize(size);
+    }
+}
+
 void ChatWindow::writeMessage(QString chatname, QString sender, QString message) {
+    /* Add a received/sent message to the specified chat */
     chats->value(chatname)->writeMessage(sender, message);
+}
+
+void ChatWindow::displayImage(QString chatname, QString sender, QIcon image, QString caption){
+    /* Display a received/sent image to the specified chat */
+    chats->value(chatname)->displayImage(sender, image, caption);
+}
+
+void ChatWindow::setWindowSize(float p=0.5){
+    /* Set the window size using the percentage of the screen */
+    resize(QDesktopWidget().availableGeometry(this).size() * p);
 }

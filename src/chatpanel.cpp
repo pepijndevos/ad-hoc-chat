@@ -25,8 +25,21 @@ void ChatPanel::writeMessage(QString sender, QString message) {
     chat->scrollToBottom();
 }
 
+void ChatPanel::displayImage(QString sender, QIcon image, QString caption){
+    QString label = QString("%1:").arg(sender);
+    new QListWidgetItem(label, chat);
+    new QListWidgetItem(image, NULL, chat);
+    new QListWidgetItem(caption, chat);
+    chat->scrollToBottom();
+}
+
 void ChatPanel::sendMessage() {
     emit newMessage(chatName, txt->text());
     writeMessage("Me", txt->text());
     txt->clear();
+}
+
+void ChatPanel::setIconSize(QSize size){
+    /* Set the panel's icon size*/
+    chat->setIconSize(size);
 }

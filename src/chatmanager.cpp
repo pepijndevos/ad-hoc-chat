@@ -131,7 +131,7 @@ void ChatManager::notifyPresence() {
 }
 
 void ChatManager::chatChanged(int chatindex, StateChange change){
-    /* Signal received that a chat changed */
+    /* Signal received that a chat status has changed */
     std::vector<QString> current_chat_names = chatwindow->getChatNames();
     std::vector<QString> default_vec = {"192.168.5.1", "192.168.5.2", "192.168.5.3", "192.168.5.4"};
 

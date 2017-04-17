@@ -17,10 +17,22 @@ int main(int argc, char *argv[])
     QSettings settings;
 
     ChatWindow w;
+    w.setWindowSize(0.5);   // Set to 50% of the desktop size.
+
     Transceiver t;
     Router r(&t);
     ChatManager m(&r, &w);
     settings.setValue("dummy", "add your ip and interface here");
+
+    // Set the default icon size
+    QSize default_icon_size = QSize(350, 350);
+    w.setChatIconSizes(default_icon_size);
+
+    // Displaying an image
+/*
+    QIcon img = QIcon("image path");
+    w.displayImage(chat name, sender, img, caption_str);
+*/
 
     w.show();
     return a.exec();

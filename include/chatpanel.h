@@ -1,9 +1,11 @@
 #pragma once
 
 #include <QWidget>
+#include <QLabel>
 #include <QLineEdit> 
 #include <QPushButton> 
 #include <QListWidget>
+#include <QSize>
 
 class ChatPanel : public QWidget {
     Q_OBJECT
@@ -13,6 +15,8 @@ public:
     
 public slots:
     void writeMessage(QString sender, QString message);
+    void displayImage(QString sender, QIcon image, QString caption);
+    void setIconSize(QSize size);
 
 private slots:
     void sendMessage();
