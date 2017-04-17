@@ -1,11 +1,13 @@
 #pragma once
 
+#include <QDebug>
 #include <QWidget>
-#include <QLabel>
 #include <QLineEdit> 
 #include <QPushButton> 
 #include <QListWidget>
 #include <QSize>
+#include <QFileDialog>
+#include <QDir>
 
 class ChatPanel : public QWidget {
     Q_OBJECT
@@ -20,13 +22,16 @@ public slots:
 
 private slots:
     void sendMessage();
+    void selectFile();
 
 signals:
     void newMessage(QString chatname, QString message);
+    void sendFile(QString chatname, QString filename);
 
 private:
     QString chatName;
     QListWidget *chat;
     QPushButton *btn;
+    QPushButton *file_btn;
     QLineEdit *txt;
 };

@@ -41,8 +41,10 @@ public slots:
 
     void setChatIconSizes(QSize size);
     void setWindowSize(float p);
+
 signals:
     void newMessage(QString chatname, QString message);
+    void sendFile(QString chatname, QString filename);
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, std::string recipients);
 

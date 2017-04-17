@@ -42,6 +42,9 @@ void ChatWindow::addChat(QString name, bool emit_signal){
     connect(panel, &ChatPanel::newMessage,
             this, &ChatWindow::newMessage);
 
+    connect(panel, &ChatPanel::sendFile,
+            this, &ChatWindow::sendFile);
+
     chats->insert(name, panel);
     tabs->addTab(panel, name);
 
