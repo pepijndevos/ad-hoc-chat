@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     // Test: send PNG image
     // TODO: not all bytes sent?
-    //    std::string image_path = "test_image.png";
+    //    std::string image_path = "/Users/ant0nisktz/Desktop/test.png";
     //    m.sendFile("Group Chat", image_path);
 
     w.show();

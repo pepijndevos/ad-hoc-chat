@@ -45,10 +45,10 @@ void ChatPanel::sendMessage() {
 
 void ChatPanel::selectFile() {
     /* Open file dialog to select a file */
-    QString filters = "Image files (*.png *.jpg);;Video files (*.avi *.mp4 *.mov *.gif *.mpg *.mpeg);;Any files (*)";
 
     QString file_path = QFileDialog::getOpenFileName(0,
-        tr("Open Image"), QDir::homePath(), filters);
+        tr("Send File"), QDir::homePath(),
+        tr("Files (*);;Image files (*.png *.jpg);;Video files (*.avi *.mp4 *.mov *.gif *.mpg *.mpeg)"));
 
     if(!file_path.isEmpty()){
         emit sendFile(chatName, file_path);
