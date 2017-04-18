@@ -1,4 +1,4 @@
-QT += core gui widgets network
+QT += core gui widgets network multimedia
 
 CONFIG += c++11
 
@@ -17,6 +17,7 @@ SOURCES += src/main.cpp\
            src/transceiver.cpp \
            src/router.cpp \
            src/chatmanager.cpp \
+           src/voip.cpp \
            src/Packet.pb.cc \
            src/Message.pb.cc \
            src/RaftMessage.pb.cc \
@@ -32,6 +33,7 @@ HEADERS += include/chatwindow.h \
            include/transceiver.h \
            include/router.h \
            include/chatmanager.h \
+           include/voip.h \
            include/Packet.pb.h \
            include/Message.pb.h \
            include/RaftMessage.pb.h \

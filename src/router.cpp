@@ -24,7 +24,7 @@ void Router::sendMessage(pb::Packet p) {
 }
 
 void Router::routeMessage(pb::Packet p) {
-    //if (p.sender_ip() == my_ip) return;
+    if (p.sender_ip() == my_ip) return;
 
     // no destination == for everyone
     bool to_me = p.receiver_ip_size() == 0;
