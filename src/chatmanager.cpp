@@ -26,7 +26,7 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, Raft *raft, QObject *parent) 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
             this, &ChatManager::notifyPresence);
-    timer->start(5000);
+    //timer->start(5000);
 
     // Default Chat recipients for each chat tab:
     recipients = {

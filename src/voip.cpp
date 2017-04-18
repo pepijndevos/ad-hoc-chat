@@ -2,6 +2,10 @@
 
 Voip::Voip(QObject *parent) : QObject(parent) {
     groupAddress = QHostAddress("228.0.0.1");
+    //groupAddress = QHostAddress("127.0.0.1");
+
+    QSettings settings;
+    my_ip = QHostAddress(settings.value("ip").toString());
 
     QAudioFormat format;
     // Set up the desired format, for example:
@@ -34,8 +38,23 @@ Voip::Voip(QObject *parent) : QObject(parent) {
     udpSocket->bind(QHostAddress::AnyIPv4, 10001, QUdpSocket::ShareAddress);
     udpSocket->joinMulticastGroup(groupAddress);
 
+    QString name = settings.value("interface").toString();
+    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName(name));
+
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Voip::processPendingDatagrams);
+
+    inbuf = audioIn->start();
+    connect(inbuf, &QIODevice::readyRead,
+            this, &Voip::processPendingAudio);
+
+    outbuf = audioOut->start();
+}
+
+void Voip::processPendingAudio() {
+    QByteArray datagram = inbuf->readAll();
+    udpSocket->writeDatagram(datagram.data(), datagram.size(),
+                             groupAddress, 10001);
 }
 
 void Voip::processPendingDatagrams() {
@@ -46,15 +65,11 @@ void Voip::processPendingDatagrams() {
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
 
-        buf->write(datagram);
-    }
-}
+        if (source == my_ip) return;
+        //qDebug() << source;
 
-void Voip::call(quint32 ip) {
-    QHostAddress addr(ip);
-    udpSocket->connectToHost(addr, 10001);
-    audioIn->start(udpSocket);
-    buf = audioOut->start();
+        outbuf->write(datagram);
+    }
 }
 
 void Voip::handleStateChanged(QAudio::State state) {
