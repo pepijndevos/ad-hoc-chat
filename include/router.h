@@ -14,17 +14,18 @@ public:
     explicit Router(Transceiver *t, QObject *parent = 0);
 
 public slots:
-    void sendMessage(pb::Packet);
-    void routeMessage(pb::Packet);
+    void sendMessage(pb::Packet *pkt);
+    void routeMessage(pb::Packet *pkt);
 
     void retransmit(unsigned int sn);
 
 signals:
-    void messageReceived(pb::Packet);
+    void messageReceived(pb::Packet *pkt);
+    void presenceUpdated(qint32 ip);
 
 private:
-    void handleAck(pb::Packet);
-    void flood(pb::Packet);
+    void handleAck(pb::Packet *pkt);
+    void flood(pb::Packet *pkt);
     quint32 my_ip;
     Transceiver *transceiver;
     QHash<unsigned int, pb::Packet> *pending;

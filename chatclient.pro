@@ -22,10 +22,9 @@ SOURCES += src/main.cpp\
            src/RaftMessage.pb.cc \
            src/Security.cpp \
            src/Message.cpp \
-           src/utils.cpp
-#    src/RaftNode.cpp \
+           src/utils.cpp \
+           src/Raft.cpp
 #    src/Routing.cpp \
-#    src/Raft.cpp
 
 HEADERS += include/chatwindow.h \
            include/chatpanel.h \
@@ -38,14 +37,12 @@ HEADERS += include/chatwindow.h \
            include/Security.h \
            include/md5.h \
            include/Message.h \
-           include/utils.h
-#    include/RaftNode.h \
+           include/utils.h \
+           include/Raft.h
 #    include/Routing.h \
-#    include/Raft.h
 
 
 DISTFILES += \
     Message.proto \
     Packet.proto \
-    ChatMessage.proto \
-    Protobufs/Raft.proto
+    Protobufs/RaftMessage.proto

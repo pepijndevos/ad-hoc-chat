@@ -6,54 +6,37 @@
 
 #include "Message.h"
 
-Message::Message(){
-    /* Default constructor */
-    name = "";
-    receiver = "";
-    *data = "";
-}
+Message::Message(){}
 
-Message::Message(std::string name, std::string receiver, std::string *data, bool is_file){
+Message::Message(pb::Message *msg){
     /* Constructor with initialisation */
-    createMessage(name, receiver, data, is_file);
+    setMessage(msg);
 }
 
 Message::~Message() {
 }
 
-void Message::createMessage(std::string name, std::string receiver, std::string *data, bool is_file){
-    /* Load the Message Data */
-    this->name = name;
-    this->receiver = receiver;
-    this->data = data;
-    this->is_file = is_file;
+void Message::setMessage(pb::Message *msg){
+    this->msg = msg;
 }
 
-void Message::getMessage(pb::Message* proto){
-    /* Get the MessageProto representation of the Message */
-    proto->set_name(name);
-    proto->set_receiver(receiver);
-    proto->set_data(*data);
-    proto->set_is_file(is_file);
-}
-
-void Message::loadFromProto(pb::Message* proto){
-    /* Load Message from Protobuf. Assumes a complete message (not fragmented) */
-    name = proto->name();
-    receiver = proto->receiver();
-    *data = proto->data();
-    is_file = proto->is_file();
+pb::Message* Message::getMessage(){
+    return msg;
 }
 
 bool Message::isFile(){
     /* Is the message a file or text? */
-    return is_file;
+    return msg->is_file();
+}
+
+Filetypes Message::getFiletype(){
+    /* Get the filetype of a message */
+    return utils::getFiletype(QString::fromStdString(msg->file_name()));
 }
 
 void Message::splitForRaft(std::vector<pb::Message> *ret_obj, int max_msg_length = 512){
-    /* Encapsulate the message into RaftMessages protobufs. Stored in the given ret_obj vector */
-    pb::Message t_proto;
-    getMessage(&t_proto);
+    /* Split a message into smaller segments. Stored in the given ret_obj vector */
+    pb::Message t_proto = *msg;
 
     t_proto.set_more(false);
     t_proto.set_msg_seq(0);
@@ -74,7 +57,7 @@ void Message::splitForRaft(std::vector<pb::Message> *ret_obj, int max_msg_length
 
         // Create the next message with the new data and the new msg_seq
         pb::Message new_msg;
-        getMessage(&t_proto);
+        t_proto = *getMessage();
         new_msg.set_data(new_data);
         new_msg.set_msg_seq(t_proto.msg_seq()+1);
 
@@ -91,6 +74,7 @@ bool Message::assembleMessage(std::vector<pb::Message> *msgs){
      *
      * Returns true if successful. (complete message received)
      */
+
     std::vector<pb::Message> ordered_msgs;
     bool no_more = false;
 
@@ -113,11 +97,14 @@ bool Message::assembleMessage(std::vector<pb::Message> *msgs){
         if(current_msg.msg_seq() != i)   // No complete message yet (intermediate parts missing)
             return false;
 
-        name = current_msg.name();
-        receiver = current_msg.receiver();
-        is_file = current_msg.is_file();
+        msg->set_chatname(current_msg.chatname());
+        msg->set_file_name(current_msg.file_name());
+        msg->set_name(current_msg.name());
+        msg->set_receiver(current_msg.receiver());
+        msg->set_is_file(current_msg.is_file());
 
-        *data += current_msg.data();
+        std::string new_data = msg->data() + current_msg.data();
+        msg->set_allocated_data(&new_data);
     }
 
     return true;

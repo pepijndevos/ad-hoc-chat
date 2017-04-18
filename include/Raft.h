@@ -2,18 +2,19 @@
  * Raft.h
  *
  *  Created on: 11 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
+ *  group: 1
  */
 
 #ifndef RAFT_H_
 #define RAFT_H_
 
-#define TIMER_EXPIRE			60
-#define NODES					4
-#define HEART_BEAT_INCR			10
-#define MAX_SIZE				500
+#define HANDLE_STATE_TIMER  100         // in ms
+#define TIMER_EXPIRE        10          // in sec
+#define NODES               4
+#define HEART_BEAT_INCR     6           // in sec
+#define MAX_SIZE            500
 
+#include <QObject>
 
 #include <iostream>
 #include <string>
@@ -21,18 +22,15 @@
 #include <array>
 #include <map>
 #include <time.h>
+#include <stdlib.h>
+
+#include "utils.h"
+#include "router.h"
+#include "Message.h"
+
+#include "Packet.pb.h"
 #include "RaftMessage.pb.h"
 #include "Message.pb.h"
-
-//struct Message{
-//	int msg_id;
-//	std::string data;
-//	int term_message;
-//	std::string flags;
-//	std::string ip_sender;
-//	std::string ip_me_or_ip_data;	// the leader now to with which ip he deals and the follower knows to hows data is sended further
-//	int index;						// how full is the queue?
-//};
 
 struct QUEUESEND{
     pb::Message data;
@@ -45,17 +43,35 @@ struct QUEUELEADER{
     int index;
 };
 
-class Raft {
+enum STATES{
+    FOLLOWER,
+    CANDIDATE,
+    LEADER
+};
+
+class Raft: public QObject {
+    Q_OBJECT
+
 public:
     Raft();
-    virtual ~Raft();
+    virtual ~Raft() {};
+
     void receivedMessage(pb::RaftMessage new_message);
-    void iWantToSendStuff(pb::Message data, std::string receiver_ip);
-    void handleState(std::string this_ip);
+    void sendMessage(pb::Message *data, std::string receiver_ip);
     std::vector<pb::RaftMessage> queue_update;
 
+    void setMyIp(int32_t ip);
+    void setMyIp(std::string ip);
+    void setRouter(Router *router);
+
+public slots:
+    void handleState();
+
+signals:
+    void messageReceived(pb::Message *msg);
+
 private:
-    std::string state;
+    STATES state;
     time_t timer;
     time_t time_now;
     bool first_time_candidate;
@@ -75,10 +91,12 @@ private:
     pb::Message data;
     pb::RaftMessage send;
     std::string my_ip;
+    int32_t my_ip_int;
     bool is_updated;
+    Router *router;
 
     void checkTimer();
-    void sendMessage(pb::RaftMessage send);
+    void sendRaftMessage(pb::RaftMessage *send);
     void follower();
     void candidate();
     void leader();

@@ -33,15 +33,15 @@ void Transceiver::processPendingDatagrams() {
 
         qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
 
-        emit messageReceived(pkt);
+        emit messageReceived(&pkt);
     }
 }
 
-void Transceiver::sendMessage(pb::Packet pkt) {
+void Transceiver::sendMessage(pb::Packet *pkt) {
     QByteArray datagram;
-    int size = pkt.ByteSize();
+    int size = pkt->ByteSize();
     datagram.resize(size);
-    pkt.SerializeToArray(datagram.data(), size);
+    pkt->SerializeToArray(datagram.data(), size);
     udpSocket->writeDatagram(datagram.data(), datagram.size(),
                              groupAddress, 10000);
 }

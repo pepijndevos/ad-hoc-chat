@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include <QString>
+#include <QHostAddress>
+
 #include <string>
 #include <algorithm>
 #include <string>
@@ -31,6 +33,9 @@ public:
 
     std::vector<std::string> static split(const std::string &s, char delim);
     Filetypes static getFiletype(QString filename);
+
+    std::string static getIp(qint32 ip);
+    qint32 static getIp(std::string ip);
 };
 
 #endif // UTILS_H

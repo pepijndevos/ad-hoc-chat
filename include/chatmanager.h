@@ -12,6 +12,7 @@
 #include <vector>
 #include <iterator>
 
+#include "Raft.h"
 #include "chatwindow.h"
 #include "router.h"
 #include "utils.h"
@@ -20,18 +21,21 @@ class ChatManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit ChatManager(Router *r, ChatWindow *w, QObject *parent = 0);
+    explicit ChatManager(Router *r, ChatWindow *w, Raft *raft, QObject *parent = 0);
+    void connectRaft(Raft *raft);
 
 public slots:
-    void handleMessage(pb::Packet p);
-    void sendPacket(pb::Packet p, QString chatname);
+    void handleMessage(pb::Message *msg);
     void sendMessage(QString chatname, QString message);
     void sendFile(QString chatname, QByteArray *data, QString filename);
     void sendFile(QString chatname, QString filepath);
+    void sendToRaft(pb::Message *msg, QString chatname);
 
-    void notifyPresence();
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, std::string new_rcpnts);
+
+    void notifyPresence();
+    void setOnline(qint32 ip);
 
 private slots:
     void sendFileAtPath(QString chatname, QString filepath);
@@ -40,6 +44,7 @@ signals:
     void isOnline(QList<quint32> online);
 
 private:
+    Raft *raft;
     Router* router;
     ChatWindow *chatwindow;
     quint32 my_ip;

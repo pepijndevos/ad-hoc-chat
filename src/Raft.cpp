@@ -9,7 +9,7 @@
 #include "Raft.h"
 
 Raft::Raft() :
-    state("Follower"),
+    state(STATES::FOLLOWER),
     timer(0),
     time_now(0),
     first_time_candidate(false),
@@ -24,9 +24,21 @@ Raft::Raft() :
     good_ack_back(0),
     leader_can_send(false),
     is_updated(false){
+
+    // Timer for handle state
+    QTimer *handle_state_timer = new QTimer(this);
+    connect(handle_state_timer, SIGNAL(timeout()), this, SLOT(handleState()));
+    handle_state_timer->start(HANDLE_STATE_TIMER);
 }
 
-Raft::~Raft() {
+void Raft::setMyIp(int32_t ip){
+    this->my_ip_int = ip;
+    this->my_ip = utils::getIp(ip);
+}
+
+void Raft::setMyIp(std::string ip){
+    this->my_ip = ip;
+    this->my_ip_int = utils::getIp(ip);
 }
 
 /* Increment time if you got a message
@@ -37,7 +49,9 @@ void Raft::follower(){
 
     // got message so increment time
     if(prev_log_size!=log_local.size()){
-        timer=timer + HEART_BEAT_INCR;
+        srand (time(NULL));
+        int rndm = rand() % (TIMER_EXPIRE-HEART_BEAT_INCR);
+        timer=timer + HEART_BEAT_INCR + rndm;
         prev_log_size=log_local.size();
 
         // received vote on me, vote on the one with a higher term than yours
@@ -45,17 +59,17 @@ void Raft::follower(){
             if(current_term<log_local[log_local.size()-1].term()){
                 current_term=log_local[log_local.size()-1].term();
                 send.add_flags(pb::RaftMessage::VOTE);
-                sendMessage(send);
+                sendRaftMessage(&send);
                 return;
             }
             send.add_flags(pb::RaftMessage::NO_VOTE);
-            sendMessage(send);
+            sendRaftMessage(&send);
             return;
         }
 
         // send ACK back
         send.add_flags(pb::RaftMessage::ACK);
-        sendMessage(send);
+        sendRaftMessage(&send);
         return;
     }
 }
@@ -76,12 +90,12 @@ void Raft::candidate(){
         send.set_msg_id(msg_id);
         send.set_term(current_term);
         send.add_flags(pb::RaftMessage::CANDIDATE);
-        sendMessage(send);
+        sendRaftMessage(&send);
         return;
     }
 
     // special time expired send again vote on me
-    if(time_now-special_timer>TIMER_EXPIRE/4){
+    if(time_now-special_timer>TIMER_EXPIRE/2){
         first_time_candidate=false;
     }
 
@@ -90,12 +104,12 @@ void Raft::candidate(){
     // someone voted or not voted on you
     if(prev_log_size!=log_local.size()){
         if(current_term <= log_local[log_local.size()-1].term()){
-            state="Follower";
+            state=STATES::FOLLOWER;
             vote=0;
             timer=time(nullptr);
             current_term=log_local[log_local.size()-1].term();
             send.add_flags(pb::RaftMessage::ACK);
-            sendMessage(send);
+            sendRaftMessage(&send);
             return;
         } else 	if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::VOTE){
             vote++;
@@ -105,18 +119,18 @@ void Raft::candidate(){
 
         // you got the majority of the votes/not vote, become leader/follower
         if(vote>=NODES/2){
-            state="Leader";
+            state=STATES::LEADER;
             special_timer=time(nullptr);
             vote=0;
             send.add_flags(pb::RaftMessage::LEADER);
-            sendMessage(send);
+            sendRaftMessage(&send);
             return;
         }else if(not_vote>=NODES/2){
-            state="Follower";
+            state=STATES::FOLLOWER;
             timer=time(nullptr);
             vote=0;
             send.add_flags(pb::RaftMessage::ACK);
-            sendMessage(send);
+            sendRaftMessage(&send);
             return;
         }
     }
@@ -130,12 +144,12 @@ void Raft::leader(){
 
     // the message has a higher term than you, become a follower
     if(current_term <= log_local[log_local.size()-1].term()){
-        state="Follower";
+        state=STATES::FOLLOWER;
         timer=time(0);
         current_term=log_local[log_local.size()-1].term();
         queue_leader.erase(queue_leader.begin(), queue_leader.end());
         send.add_flags(pb::RaftMessage::ACK);
-        sendMessage(send);
+        sendRaftMessage(&send);
         return;
     }
 
@@ -176,8 +190,8 @@ void Raft::leader(){
 
     // leader can send if he has the majority of the ACK back otherwise send again the same message
     time_now=time(0);
-    if(leader_can_send==true || time_now-special_timer>TIMER_EXPIRE/4){
-        if(time_now-special_timer>TIMER_EXPIRE/4){
+    if(leader_can_send==true || time_now-special_timer>TIMER_EXPIRE/2){
+        if(time_now-special_timer>TIMER_EXPIRE/2){
             is_updated=false;
         }
         special_timer=time(0);
@@ -190,7 +204,7 @@ void Raft::leader(){
                 && is_updated){
             is_updated=false;
             send.add_flags(pb::RaftMessage::DATA_OK);
-            sendMessage(send);
+            sendRaftMessage(&send);
             for(int i=0; i<queue_leader.size(); i++){
                 if(log_local[log_local.size()-1].sender_ip() == queue_leader[i].queue_send.sender_ip
                         && log_local[log_local.size()-1].receiver_ip() == queue_leader[i].queue_send.receiver_ip)
@@ -209,7 +223,7 @@ void Raft::leader(){
     // if queue of the leader is empty, still send heart beat
     if(queue_leader.size()==0){
         send.add_flags(pb::RaftMessage::NO_CHANGE);
-        sendMessage(send);
+        sendRaftMessage(&send);
         return;
     }else{
         is_updated=true;
@@ -221,7 +235,7 @@ void Raft::leader(){
             send.set_receiver_ip(queue_leader[0].queue_send.receiver_ip);
             send.set_index(queue_leader[0].index);
             send.set_allocated_data(&queue_leader[0].queue_send.data);
-            sendMessage(send);
+            sendRaftMessage(&send);
             return;
         }
 
@@ -234,11 +248,12 @@ void Raft::leader(){
                 j=i;
             }
         }
+
         send.set_sender_ip(queue_leader[j].queue_send.sender_ip);
         send.set_receiver_ip(queue_leader[j].queue_send.receiver_ip);
         send.set_index(queue_leader[j].index);
         send.set_allocated_data(&queue_leader[j].queue_send.data);
-        sendMessage(send);
+        sendRaftMessage(&send);
         return;
     }
 }
@@ -246,9 +261,8 @@ void Raft::leader(){
 /* handle the states
  * set the data
  * only check the time of the follower*/
-void Raft::handleState(std::string this_ip){
+void Raft::handleState(){
     time_now=time(0);
-    my_ip=this_ip;
 
     // set the data
     if(queue_send_stuf.size()>0){
@@ -260,16 +274,16 @@ void Raft::handleState(std::string this_ip){
     send.set_allocated_data(&data);
     send.set_index(index);
 
-    if(state=="Follower"){
+    if(state==STATES::FOLLOWER){
         checkTimer();
         follower();
-    }else if(state=="Candidate"){
+    }else if(state==STATES::CANDIDATE){
         candidate();
-    }else if(state=="Leader"){
+    }else if(state==STATES::LEADER){
         leader();
     }else{ // error, become follower
         std::cout << "\nError, not a state!";
-        state="Follower";
+        state=STATES::FOLLOWER;
         timer=time(0);
         vote=0;
     }
@@ -279,7 +293,7 @@ void Raft::handleState(std::string this_ip){
  * if your time is expires, become candidate */
 void Raft::checkTimer(){
     if(time_now-timer > TIMER_EXPIRE){
-        state="Candidate";
+        state=STATES::CANDIDATE;
         std::cout<<"\nI am expired";
     }
 }
@@ -293,7 +307,30 @@ void Raft::receivedMessage(pb::RaftMessage new_message){
 
     // if you got a message with a flag update with you as receiver, add data to the queue update
     if(new_message.flags(0)==pb::RaftMessage::UPDATE && new_message.receiver_ip()==my_ip){
-        queue_update.push_back(new_message);				//TODO
+        queue_update.push_back(new_message);
+        Message msg_wrapper;
+
+        QHash<int32_t, std::vector<pb::Message>> msgs;
+        int32_t q_msg_id = new_message.msg_id();
+
+        for(auto m: queue_update){
+            msgs[q_msg_id].push_back(m.data());
+        }
+
+        if(msg_wrapper.assembleMessage(&(msgs[q_msg_id]))){
+            pb::Message *msg = msg_wrapper.getMessage();
+            emit messageReceived(msg);
+
+            // Delete the message from queue_update
+            std::vector<size_t> msg_indices;
+            for(int i=0; i < queue_update.size(); i++){
+                if(queue_update[i].msg_id() == q_msg_id){
+                    int indx = i - msg_indices.size(); // Index after the removal of the previous element
+                    msg_indices.push_back(indx);
+                    queue_update.erase(queue_update.begin() + indx);
+                }
+            }
+        }
     }
 
     // Your data is send OK, decrease your index and erase what is send OK from the queue
@@ -305,7 +342,7 @@ void Raft::receivedMessage(pb::RaftMessage new_message){
     // if you are a leader and receive a message from a client
     // check how many packets with the same id are received, to know if you got the majority of the ACKs
     // client ask you if you want to update the data to other nodes (index>0) add that in your queue
-    if(state=="Leader"){
+    if(state==STATES::LEADER){
         if(new_message.msg_id()==msg_id && log_local[log_local.size()-1].flags(0)==pb::RaftMessage::ACK){
             good_ack_back++;
             if(good_ack_back==NODES/2 ){
@@ -314,6 +351,7 @@ void Raft::receivedMessage(pb::RaftMessage new_message){
                 leader_can_send=true;
             }
         }
+
         if(log_local[log_local.size()-1].index()>0){
             QUEUELEADER add_queue_leader;
             add_queue_leader.index=log_local[log_local.size()-1].index();
@@ -342,19 +380,34 @@ void Raft::receivedMessage(pb::RaftMessage new_message){
     }
 }
 
-/* I want to send stuff, put this in my queue */
-void Raft::iWantToSendStuff(pb::Message data, std::string receiver_ip){
+void Raft::sendMessage(pb::Message *data, std::string receiver_ip){
+    /* Split a message if necessary and put in the send queue */
     QUEUESEND send_stuff;
-    send_stuff.data=data;
-    send_stuff.receiver_ip=receiver_ip;
-    send_stuff.sender_ip=my_ip;
-    queue_send_stuf.push_back(send_stuff);
-    index++;
+
+    Message msg_wrapper(data);
+    std::vector<pb::Message> split_msgs;
+    msg_wrapper.splitForRaft(&split_msgs, 512);
+
+    for(auto m: split_msgs){
+        send_stuff.data=m;
+        send_stuff.receiver_ip=receiver_ip;
+        send_stuff.sender_ip=my_ip;
+
+        queue_send_stuf.push_back(send_stuff);
+        index++;
+    }
 }
 
-/* send the message */
-void Raft::sendMessage(pb::RaftMessage send){
+void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
+    /* Send a raft message to the router */
     leader_can_send=false;
-    //TODO
+    pb::Packet *pkt;
+    pkt->set_sender_ip(my_ip_int);
+    pkt->set_message_type(pb::Packet::RAFT);
+    pkt->set_allocated_raft_msg(raft_msg);
+    router->sendMessage(pkt);
 }
 
+void Raft::setRouter(Router *router){
+    this->router = router;
+}

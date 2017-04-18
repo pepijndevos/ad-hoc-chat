@@ -12,10 +12,11 @@ public:
     explicit Transceiver(QObject *parent = 0);
 
 public slots:
-    void sendMessage(pb::Packet);
+    void sendMessage(pb::Packet *pkt);
     void processPendingDatagrams();
+
 signals:
-    void messageReceived(pb::Packet);
+    void messageReceived(pb::Packet *pkt);
 
 private:
     QHostAddress groupAddress;

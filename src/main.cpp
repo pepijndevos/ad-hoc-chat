@@ -2,6 +2,8 @@
 #include "transceiver.h"
 #include "router.h"
 #include "chatmanager.h"
+#include "Raft.h"
+
 #include "Packet.pb.h"
 #include "Message.pb.h"
 
@@ -22,7 +24,8 @@ int main(int argc, char *argv[])
 
     Transceiver t;
     Router r(&t);
-    ChatManager m(&r, &w);
+    Raft raft;
+    ChatManager m(&r, &w, &raft);
     settings.setValue("dummy", "add your ip and interface here");
 
     // Set the default icon size
