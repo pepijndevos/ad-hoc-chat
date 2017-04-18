@@ -1,15 +1,18 @@
 #include "chatpanel.h"
+#include "voip.h"
 #include <QGridLayout> 
 
 ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(name) {
     QGridLayout *layout = new QGridLayout();
 
     chat = new QListWidget();
-    layout->addWidget(chat, 0, 0, 1, 3);
+    layout->addWidget(chat, 0, 0, 1, 4);
     btn = new QPushButton("Send!");
     layout->addWidget(btn, 1, 1);
     file_btn = new QPushButton("Send File...");
     layout->addWidget(file_btn, 1, 2);
+    call_btn = new QPushButton("Call");
+    layout->addWidget(call_btn, 1, 3);
     txt = new QLineEdit();
     layout->addWidget(txt, 1, 0);
 
@@ -19,6 +22,8 @@ ChatPanel::ChatPanel(QString name, QWidget *parent) : QWidget(parent), chatName(
             this, &ChatPanel::sendMessage);
     connect(file_btn, &QPushButton::clicked,
             this, &ChatPanel::selectFile);
+    connect(call_btn, &QPushButton::clicked,
+            this, &ChatPanel::makeCall);
     connect(txt, &QLineEdit::returnPressed,
             this, &ChatPanel::sendMessage);
 }
@@ -55,6 +60,10 @@ void ChatPanel::selectFile() {
     if(!file_path.isEmpty()){
         emit sendFile(chatName, file_path);
     }
+}
+
+void ChatPanel::makeCall() {
+    new Voip(this);
 }
 
 void ChatPanel::setIconSize(QSize size){

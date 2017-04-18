@@ -26,9 +26,6 @@ int main(int argc, char *argv[])
     ChatManager m(&r, &w);
     settings.setValue("dummy", "add your ip and interface here");
 
-    Voip v;
-    //v.call(QHostAddress("127.0.0.1").toIPv4Address());
-
     // Set the default icon size
     QSize default_icon_size = QSize(350, 350);
     w.setChatIconSizes(default_icon_size);

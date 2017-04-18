@@ -23,7 +23,7 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(pa
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
             this, &ChatManager::notifyPresence);
-    timer->start(5000);
+    //timer->start(5000);
 
     // Default Chat recipients for each chat tab:
     recipients = {
