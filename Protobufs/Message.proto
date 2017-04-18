@@ -3,33 +3,17 @@ syntax = "proto3";
 package pb;
 
 message Message {
-    string name = 1;     // Sender's name
-    string receiver = 2; // Receiver's name
-    string chatname = 7; // The chat this message belongs to
-    bytes data = 3;      // Data
-    bool is_file = 4;    // Is it a file?
+    string name = 1;        // Sender's name
+    string receiver = 2;    // Receiver's name
+    string chatname = 7;    // The chat this message belongs to
+    bytes data = 3;         // Data
 
-    enum Filetype{
-        option allow_alias=true;
-        GENERIC = 0;     // Other file (e.g. PDF, Doc, etc..)
-
-        // Image Files
-        JPG = 1;
-        PNG = 2;
-
-        // Video Files
-        AVI = 3;
-        MP4 = 4;
-        MOV = 5;
-        GIF = 6;
-        MPG = 7;
-        MPEG = 7;
-    };
-
-    Filetype filetype = 8; // Filetype
+    // Files
+    bool is_file = 4;       // Is it a file?
+    string file_name = 8;   // Filename
 
     // Fragmentation
-    bool more = 5;       // If the message is fragmented
+    bool more = 5;          // If the message is fragmented
 
     // Which is the order of this message (1st, 2nd etc..) - starting from 0
     int32 msg_seq = 6;

@@ -29,11 +29,6 @@ int main(int argc, char *argv[])
     QSize default_icon_size = QSize(350, 350);
     w.setChatIconSizes(default_icon_size);
 
-    // Test: send PNG image
-    // TODO: not all bytes sent?
-    //    std::string image_path = "/Users/ant0nisktz/Desktop/test.png";
-    //    m.sendFile("Group Chat", image_path);
-
     w.show();
     return a.exec();
 }

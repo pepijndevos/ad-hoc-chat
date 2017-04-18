@@ -1,17 +1,20 @@
+#ifndef CHATMANAGER_H_
+#define CHATMANAGER_H_
+
 #include <QObject>
 #include <QHash>
 #include <QDebug>
 #include <QString>
 #include <QMutableHashIterator>
+#include <QFileInfo>
 
-#include <algorithm>
 #include <string>
-#include <sstream>
 #include <vector>
 #include <iterator>
 
 #include "chatwindow.h"
 #include "router.h"
+#include "utils.h"
 
 class ChatManager : public QObject {
     Q_OBJECT
@@ -23,7 +26,7 @@ public slots:
     void handleMessage(pb::Packet p);
     void sendPacket(pb::Packet p, QString chatname);
     void sendMessage(QString chatname, QString message);
-    void sendFile(QString chatname, QByteArray *data, pb::Message::Filetype filetype);
+    void sendFile(QString chatname, QByteArray *data, QString filename);
     void sendFile(QString chatname, QString filepath);
 
     void notifyPresence();
@@ -48,3 +51,5 @@ private:
     std::vector<std::vector<QString>> recipients;
     std::vector<QString> chatnames;
 };
+
+#endif // CHATMANAGER_H_

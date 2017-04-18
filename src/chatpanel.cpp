@@ -38,6 +38,9 @@ void ChatPanel::displayImage(QString sender, QIcon image, QString caption){
 }
 
 void ChatPanel::sendMessage() {
+    if(txt->text().trimmed().isEmpty())
+        return;
+
     emit newMessage(chatName, txt->text());
     writeMessage("Me", txt->text());
     txt->clear();
@@ -45,7 +48,6 @@ void ChatPanel::sendMessage() {
 
 void ChatPanel::selectFile() {
     /* Open file dialog to select a file */
-
     QString file_path = QFileDialog::getOpenFileName(0,
         tr("Send File"), QDir::homePath(),
         tr("Files (*);;Image files (*.png *.jpg);;Video files (*.avi *.mp4 *.mov *.gif *.mpg *.mpeg)"));

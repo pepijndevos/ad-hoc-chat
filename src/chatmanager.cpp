@@ -1,23 +1,5 @@
 #include "chatmanager.h"
 
-// Util: split string into vector
-template<typename Out>
-void split(const std::string &s, char delim, Out result) {
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        *(result++) = item;
-    }
-}
-
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, std::back_inserter(elems));
-    return elems;
-}
-
-// ChatManager: function implementations
 ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(parent), router(r), chatwindow(w) {
     QSettings settings;
 
@@ -81,47 +63,75 @@ void ChatManager::handleMessage(pb::Packet p) {
     if (p.message_type() == pb::Packet::MESSAGE) {
         pb::Message msg = p.msg();
 
-        if(msg.name() == name.toUtf8().constData())
-            return;
-
         if(msg.is_file() == true){
-            // Received file
-            //
             // TODO:
-            //   1) For now, it assumes it is an image
+            //   1) For now, it assumes it is an image or a generic filetype
             //       with an empty caption.
             //   2) Support retina displays (images are pixelated)
             //
 
-            std::string filetype;
-            switch(msg.filetype()){
-                case pb::Message::JPG:
-                    filetype = "JPG";
-                    break;
-                case pb::Message::PNG:
-                    filetype = "PNG";
-                    break;
-                default: // Default to jpeg images
-                    filetype = "JPG";
-                   break;
+            bool no_dl_flag = false;            // Don't download data you send.
+            if(msg.name() == name.toUtf8().constData()){
+                msg.set_name("Me");
+                no_dl_flag = true;
             }
 
-            std::string byte_data = msg.data();
-            QByteArray byte_array(byte_data.c_str(), byte_data.length());
-            QPixmap recvd_image;
+            // Prepare download path
+            QString download_dir = QDir::homePath() + QDir::separator() + "ChatDownloads";
+            QDir dl;
+            dl.mkpath(download_dir);
+            QFile save_file(download_dir + QDir::separator() + QString::fromStdString(msg.file_name()));
 
-            if(recvd_image.loadFromData(byte_array, filetype.c_str())){
-                // If successfully loaded
-                QIcon img(recvd_image);
-                chatwindow->displayImage(
-                    QString::fromStdString(msg.chatname()),
-                    QString::fromStdString(msg.name()),
-                    img,
-                    ""
-                );
+            std::string filetype;
+            switch(utils::getFiletype(QString::fromStdString(msg.file_name()))){
+                case Filetypes::JPG:
+                    filetype = "JPG";
+                    break;
+                case Filetypes::PNG:
+                    filetype = "PNG";
+                    break;
+                default: // Default to GENERIC
+                    filetype = "GENERIC";
+                    break;
+            }
+
+            QByteArray byte_array(&(msg.data())[0u], msg.data().length());
+
+            if(filetype == "PNG" || filetype == "JPG"){
+                QPixmap recvd_image;
+                if(recvd_image.loadFromData(byte_array, filetype.c_str())){
+                    // If successfully loaded
+                    QIcon img(recvd_image);
+
+                    // Save image
+                    if(!no_dl_flag)
+                        recvd_image.save(save_file.fileName(), filetype.c_str());
+
+                    // Display to the chat
+                    chatwindow->displayImage(
+                        QString::fromStdString(msg.chatname()),
+                        QString::fromStdString(msg.name()),
+                        img,
+                        ""
+                    );
+                 }
+            } else {
+                // Generic file: Save to temp directory
+                if (save_file.open(QIODevice::ReadWrite)) {
+                    if(!no_dl_flag)
+                        save_file.write(byte_array);
+
+                    chatwindow->writeMessage(
+                        QString::fromStdString(msg.chatname()),
+                        QString::fromStdString(msg.name()),
+                        QString::fromStdString("Sent file `" + QFileInfo(save_file).fileName().toStdString()) + "`.");
+                }
             }
         } else {
             // Received text data
+            if(msg.name() == name.toUtf8().constData())
+                return;
+
             chatwindow->writeMessage(
                 QString::fromStdString(msg.chatname()),
                 QString::fromStdString(msg.name()),
@@ -145,46 +155,44 @@ void ChatManager::sendMessage(QString chatname, QString message) {
     sendPacket(p, chatname);
 }
 
-void ChatManager::sendFile(QString chatname, QByteArray *data, pb::Message::Filetype filetype){
+void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename){
     /* Construct a packet of a file and send it to a chat */
     pb::Packet p;
+    QFileInfo fi(filename);
+    filename = fi.fileName();
+
     p.set_message_type(pb::Packet::MESSAGE);
     p.set_sender_ip(my_ip);
 
     pb::Message *msg = p.mutable_msg();
+    msg->set_data(data->toStdString());
+    msg->set_file_name(filename.toStdString());
     msg->set_name(name.toStdString());
-    msg->set_data(*data);
     msg->set_is_file(true);
-    msg->set_filetype(filetype);
 
     sendPacket(p, chatname);
 }
 
 void ChatManager::sendFile(QString chatname, QString filepath){
     /* Convenience method to send a file. Loads the file from a given file path.
-     * Determines filetype from extension
+     * Determines filetype from extension.
      */
     QFile file(filepath);
-    pb::Message::Filetype filetype;
-
-    if(filepath.endsWith(".png", Qt::CaseInsensitive)){
-        // PNG
-        filetype = pb::Message::PNG;
-    } else if(filepath.endsWith(".jpg", Qt::CaseInsensitive) || filepath.endsWith(".jpeg", Qt::CaseInsensitive)) {
-        // JPG
-        filetype = pb::Message::JPG;
-    } else{
-        // Default to Generic
-        filetype = pb::Message::GENERIC;
-    }
+    QString filename = file.fileName();
+    Filetypes filetype = utils::getFiletype(filename);
 
     if (file.open(QIODevice::ReadOnly)){
         QByteArray file_data = file.readAll();
-        sendFile(chatname, &file_data, filetype);
+        sendFile(chatname, &file_data, filename);
+    }else{
+        qDebug() << "Couldn't load file at path: " << filepath;
     }
 }
 
-void ChatManager::sendFileAtPath(QString chatname, QString filepath){ sendFile(chatname, filepath); } // Used to connect a signal to the overloaded sendFile
+void ChatManager::sendFileAtPath(QString chatname, QString filepath){
+    /* Used to connect a signal to the overloaded sendFile */
+    sendFile(chatname, filepath);
+}
 
 void ChatManager::sendPacket(pb::Packet p, QString chatname){
     /* Send a packet to the specified chat */
@@ -246,7 +254,7 @@ void ChatManager::recipientsChanged(int chatindex, std::string new_rcpnts){
     /* Signal received that the recipients of a chat changed */
     std::vector<QString> new_recipients;
 
-    std::vector<std::string> x = split(new_rcpnts, ',');
+    std::vector<std::string> x = utils::split(new_rcpnts, ',');
     qDebug() << "Changed recipients of " << chatnames[chatindex] << " to ";
 
     for(int r=0; r < x.size(); r++){ // Remove all spaces
