@@ -9,6 +9,25 @@ message Message {
     bytes data = 3;      // Data
     bool is_file = 4;    // Is it a file?
 
+    enum Filetype{
+        option allow_alias=true;
+        GENERIC = 0;     // Other file (e.g. PDF, Doc, etc..)
+
+        // Image Files
+        JPG = 1;
+        PNG = 2;
+
+        // Video Files
+        AVI = 3;
+        MP4 = 4;
+        MOV = 5;
+        GIF = 6;
+        MPG = 7;
+        MPEG = 7;
+    };
+
+    Filetype filetype = 8; // Filetype
+
     // Fragmentation
     bool more = 5;       // If the message is fragmented
 

@@ -7,6 +7,9 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QKeySequence>
+#include <QSize>
+#include <QDesktopWidget>
+#include <QTabWidget>
 
 #include "chatpanel.h"
 
@@ -27,6 +30,7 @@ public slots:
     void addChat(QString name, bool emit_signal);
     void addChat(QString name);
     void writeMessage(QString chatname, QString sender, QString message);
+    void displayImage(QString chatname, QString sender, QIcon image, QString caption);
 
     void newChatSetup();
     void removeChat();
@@ -35,8 +39,12 @@ public slots:
     void editChatRecipients();
     std::vector<QString> getChatNames();
 
+    void setChatIconSizes(QSize size);
+    void setWindowSize(float p);
+
 signals:
     void newMessage(QString chatname, QString message);
+    void sendFile(QString chatname, QString filename);
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, std::string recipients);
 

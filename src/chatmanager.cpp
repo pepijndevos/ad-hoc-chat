@@ -1,8 +1,5 @@
 #include "chatmanager.h"
 
-#include <QMutableHashIterator> 
-
-
 // Util: split string into vector
 template<typename Out>
 void split(const std::string &s, char delim, Out result) {
@@ -20,6 +17,7 @@ std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
+// ChatManager: function implementations
 ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(parent), router(r), chatwindow(w) {
     QSettings settings;
 
@@ -37,6 +35,8 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(pa
                      this, &ChatManager::chatChanged);
     QObject::connect(w, &ChatWindow::recipientsChanged,
                      this, &ChatManager::recipientsChanged);
+    QObject::connect(w, &ChatWindow::sendFile,
+                     this, &ChatManager::sendFileAtPath);
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
@@ -84,16 +84,56 @@ void ChatManager::handleMessage(pb::Packet p) {
         if(msg.name() == name.toUtf8().constData())
             return;
 
-        chatwindow->writeMessage(
-            QString::fromStdString(msg.chatname()),
-            QString::fromStdString(msg.name()),
-            QString::fromStdString(msg.data()));
+        if(msg.is_file() == true){
+            // Received file
+            //
+            // TODO:
+            //   1) For now, it assumes it is an image
+            //       with an empty caption.
+            //   2) Support retina displays (images are pixelated)
+            //
+
+            std::string filetype;
+            switch(msg.filetype()){
+                case pb::Message::JPG:
+                    filetype = "JPG";
+                    break;
+                case pb::Message::PNG:
+                    filetype = "PNG";
+                    break;
+                default: // Default to jpeg images
+                    filetype = "JPG";
+                   break;
+            }
+
+            std::string byte_data = msg.data();
+            QByteArray byte_array(byte_data.c_str(), byte_data.length());
+            QPixmap recvd_image;
+
+            if(recvd_image.loadFromData(byte_array, filetype.c_str())){
+                // If successfully loaded
+                QIcon img(recvd_image);
+                chatwindow->displayImage(
+                    QString::fromStdString(msg.chatname()),
+                    QString::fromStdString(msg.name()),
+                    img,
+                    ""
+                );
+            }
+        } else {
+            // Received text data
+            chatwindow->writeMessage(
+                QString::fromStdString(msg.chatname()),
+                QString::fromStdString(msg.name()),
+                QString::fromStdString(msg.data()));
+        }
     } else if (p.message_type() == pb::Packet::PRESENCE) {
         online->insert(p.sender_ip(), 3);
     }
 }
 
 void ChatManager::sendMessage(QString chatname, QString message) {
+    /* Construct a text message packet and send it to a chat */
     pb::Packet p;
     p.set_message_type(pb::Packet::MESSAGE);
     p.set_sender_ip(my_ip);
@@ -101,6 +141,54 @@ void ChatManager::sendMessage(QString chatname, QString message) {
     pb::Message *msg = p.mutable_msg();
     msg->set_name(name.toStdString());
     msg->set_data(message.toStdString());
+
+    sendPacket(p, chatname);
+}
+
+void ChatManager::sendFile(QString chatname, QByteArray *data, pb::Message::Filetype filetype){
+    /* Construct a packet of a file and send it to a chat */
+    pb::Packet p;
+    p.set_message_type(pb::Packet::MESSAGE);
+    p.set_sender_ip(my_ip);
+
+    pb::Message *msg = p.mutable_msg();
+    msg->set_name(name.toStdString());
+    msg->set_data(*data);
+    msg->set_is_file(true);
+    msg->set_filetype(filetype);
+
+    sendPacket(p, chatname);
+}
+
+void ChatManager::sendFile(QString chatname, QString filepath){
+    /* Convenience method to send a file. Loads the file from a given file path.
+     * Determines filetype from extension
+     */
+    QFile file(filepath);
+    pb::Message::Filetype filetype;
+
+    if(filepath.endsWith(".png", Qt::CaseInsensitive)){
+        // PNG
+        filetype = pb::Message::PNG;
+    } else if(filepath.endsWith(".jpg", Qt::CaseInsensitive) || filepath.endsWith(".jpeg", Qt::CaseInsensitive)) {
+        // JPG
+        filetype = pb::Message::JPG;
+    } else{
+        // Default to Generic
+        filetype = pb::Message::GENERIC;
+    }
+
+    if (file.open(QIODevice::ReadOnly)){
+        QByteArray file_data = file.readAll();
+        sendFile(chatname, &file_data, filetype);
+    }
+}
+
+void ChatManager::sendFileAtPath(QString chatname, QString filepath){ sendFile(chatname, filepath); } // Used to connect a signal to the overloaded sendFile
+
+void ChatManager::sendPacket(pb::Packet p, QString chatname){
+    /* Send a packet to the specified chat */
+    pb::Message *msg = p.mutable_msg();
 
     for(int c=0; c<chatnames.size(); c++){
         if (chatname == chatnames[c]){
@@ -131,7 +219,7 @@ void ChatManager::notifyPresence() {
 }
 
 void ChatManager::chatChanged(int chatindex, StateChange change){
-    /* Signal received that a chat changed */
+    /* Signal received that a chat status has changed */
     std::vector<QString> current_chat_names = chatwindow->getChatNames();
     std::vector<QString> default_vec = {"192.168.5.1", "192.168.5.2", "192.168.5.3", "192.168.5.4"};
 
