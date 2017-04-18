@@ -34,8 +34,8 @@ public:
     std::vector<std::string> static split(const std::string &s, char delim);
     Filetypes static getFiletype(QString filename);
 
-    std::string static getIp(qint32 ip);
-    qint32 static getIp(std::string ip);
+    std::string static getIp(uint32_t ip);
+    uint32_t static getIp(std::string ip);
 };
 
 #endif // UTILS_H

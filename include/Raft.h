@@ -60,7 +60,7 @@ public:
     void sendMessage(pb::Message *data, std::string receiver_ip);
     std::vector<pb::RaftMessage> queue_update;
 
-    void setMyIp(int32_t ip);
+    void setMyIp(uint32_t ip);
     void setMyIp(std::string ip);
     void setRouter(Router *router);
 
@@ -91,7 +91,7 @@ private:
     pb::Message data;
     pb::RaftMessage send;
     std::string my_ip;
-    int32_t my_ip_int;
+    uint32_t my_ip_int;
     bool is_updated;
     Router *router;
 

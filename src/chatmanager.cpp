@@ -195,7 +195,7 @@ void ChatManager::sendToRaft(pb::Message *msg, QString chatname){
         if (chatname == chatnames[c]){
             msg->set_chatname(chatname.toUtf8().constData());
             for(auto r: recipients[c]){
-                int32_t ip_addr = QHostAddress(r).toIPv4Address();
+                uint32_t ip_addr = QHostAddress(r).toIPv4Address();
                 raft->sendMessage(msg, utils::getIp(ip_addr));
             }
             break;
@@ -257,6 +257,6 @@ void ChatManager::recipientsChanged(int chatindex, std::string new_rcpnts){
     recipients[chatindex] = new_recipients;
 }
 
-void ChatManager::setOnline(qint32 ip){
+void ChatManager::setOnline(quint32 ip){
     online->insert(ip, 3);
 }

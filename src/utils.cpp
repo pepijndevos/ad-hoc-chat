@@ -52,13 +52,13 @@ Filetypes utils::getFiletype(QString filename){
     }
 }
 
-std::string utils::getIp(qint32 ip){
+std::string utils::getIp(uint32_t ip){
     /* Get the string representation of an ip */
     QHostAddress cip(ip);
     return cip.toString().toStdString();
 }
 
-qint32 utils::getIp(std::string ip){
+uint32_t utils::getIp(std::string ip){
     /* Get the int representation of an ip */
     QHostAddress cip(QString::fromStdString(ip));
     return cip.toIPv4Address();

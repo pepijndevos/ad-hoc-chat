@@ -35,7 +35,7 @@ public slots:
     void recipientsChanged(int chatindex, std::string new_rcpnts);
 
     void notifyPresence();
-    void setOnline(qint32 ip);
+    void setOnline(quint32 ip);
 
 private slots:
     void sendFileAtPath(QString chatname, QString filepath);

@@ -31,7 +31,7 @@ Raft::Raft() :
     handle_state_timer->start(HANDLE_STATE_TIMER);
 }
 
-void Raft::setMyIp(int32_t ip){
+void Raft::setMyIp(uint32_t ip){
     this->my_ip_int = ip;
     this->my_ip = utils::getIp(ip);
 }
@@ -267,12 +267,13 @@ void Raft::handleState(){
     // set the data
     if(queue_send_stuf.size()>0){
         data=queue_send_stuf[0].data;
+
+        // set wht to send
+        send=log_local[log_local.size()-1];
+        send.set_allocated_data(&data);
+        send.set_index(index);
     }
 
-    // set wht to send
-    send=log_local[log_local.size()-1];
-    send.set_allocated_data(&data);
-    send.set_index(index);
 
     if(state==STATES::FOLLOWER){
         checkTimer();
@@ -401,11 +402,12 @@ void Raft::sendMessage(pb::Message *data, std::string receiver_ip){
 void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     /* Send a raft message to the router */
     leader_can_send=false;
-    pb::Packet *pkt;
-    pkt->set_sender_ip(my_ip_int);
-    pkt->set_message_type(pb::Packet::RAFT);
-    pkt->set_allocated_raft_msg(raft_msg);
-    router->sendMessage(pkt);
+    pb::Packet pkt;
+    pkt.set_sender_ip(my_ip_int);
+    pkt.set_message_type(pb::Packet::RAFT);
+    pb::RaftMessage *tmp_msg = pkt.mutable_raft_msg();
+    *tmp_msg = *raft_msg;
+    router->sendMessage(&pkt);
 }
 
 void Raft::setRouter(Router *router){

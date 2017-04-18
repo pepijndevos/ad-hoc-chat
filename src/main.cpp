@@ -9,6 +9,7 @@
 
 #include <string>
 #include <QApplication>
+#include <QHostAddress>
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +26,11 @@ int main(int argc, char *argv[])
     Transceiver t;
     Router r(&t);
     Raft raft;
+
+    uint32_t my_ip = QHostAddress(settings.value("ip").toString()).toIPv4Address();
+    raft.setMyIp(my_ip);
+    raft.setRouter(&r);
+
     ChatManager m(&r, &w, &raft);
     settings.setValue("dummy", "add your ip and interface here");
 
