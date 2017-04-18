@@ -48,4 +48,4 @@ DISTFILES += \
     Message.proto \
     Packet.proto \
     ChatMessage.proto \
-    Protobufs/RaftMessage.proto
+    Protobufs/Raft.proto
