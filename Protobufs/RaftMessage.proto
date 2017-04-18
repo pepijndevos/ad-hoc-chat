@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "Message.proto";
+
+package pb;
+
+message RaftMessage {
+    int32 msg_id = 1;
+    Message data = 2;
+    int32 term = 3;
+
+    enum Flags{
+        VOTE = 0;
+        NO_VOTE = 1;
+        CANDIDATE = 2;
+        DATA_OK = 3;
+        ACK = 4;
+        LEADER = 5;
+        NO_CHANGE = 6;
+        UPDATE = 7;
+    }
+
+    repeated Flags flags = 5;
+
+    string sender_ip = 6;
+    string receiver_ip = 7;
+    int32 index = 8;
+}

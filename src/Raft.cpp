@@ -258,7 +258,6 @@ void Raft::handleState(std::string this_ip){
     // set wht to send
     send=log_local[log_local.size()-1];
     send.set_allocated_data(&data);
-    send.set_my_ip(my_ip);
     send.set_index(index);
 
     if(state=="Follower"){
