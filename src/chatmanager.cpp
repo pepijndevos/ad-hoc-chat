@@ -148,11 +148,11 @@ void ChatManager::handleMessage(pb::Message *rcv_msg) {
 
 void ChatManager::sendMessage(QString chatname, QString message) {
     /* Construct a text message packet and send it to a chat */
-    pb::Message *msg;
-    msg->set_name(name.toStdString());
-    msg->set_data(message.toStdString());
-
-    sendToRaft(msg, chatname);
+    pb::Message msg;
+    msg.set_name(name.toStdString());
+    msg.set_chatname(chatname.toStdString());
+    msg.set_data(message.toStdString());
+    sendToRaft(&msg, chatname);
 }
 
 void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename){
@@ -160,13 +160,13 @@ void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename)
     QFileInfo fi(filename);
     filename = fi.fileName();
 
-    pb::Message *msg;
-    msg->set_data(data->toStdString());
-    msg->set_file_name(filename.toStdString());
-    msg->set_name(name.toStdString());
-    msg->set_is_file(true);
+    pb::Message msg;
+    msg.set_data(data->toStdString());
+    msg.set_file_name(filename.toStdString());
+    msg.set_name(name.toStdString());
+    msg.set_is_file(true);
 
-    sendToRaft(msg, chatname);
+    sendToRaft(&msg, chatname);
 }
 
 void ChatManager::sendFile(QString chatname, QString filepath){
@@ -198,6 +198,7 @@ void ChatManager::sendToRaft(pb::Message *msg, QString chatname){
                 uint32_t ip_addr = QHostAddress(r).toIPv4Address();
                 raft->sendMessage(msg, utils::getIp(ip_addr));
             }
+
             break;
         }
     }
@@ -215,6 +216,7 @@ void ChatManager::notifyPresence() {
         i.setValue(i.value()-1);
         if(i.value() == 0) i.remove();
     }
+
     emit isOnline(online->keys());
 }
 

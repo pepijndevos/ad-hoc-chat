@@ -8,10 +8,10 @@
 #ifndef RAFT_H_
 #define RAFT_H_
 
-#define HANDLE_STATE_TIMER  100         // in ms
+#define HANDLE_STATE_TIMER  300         // in ms
 #define TIMER_EXPIRE        10          // in sec
-#define NODES               4
 #define HEART_BEAT_INCR     6           // in sec
+#define NODES               4
 #define MAX_SIZE            500
 
 #include <QObject>
@@ -56,12 +56,14 @@ public:
     Raft();
     virtual ~Raft() {};
 
+    std::vector<pb::RaftMessage> queue_update;
+
     void receivedMessage(pb::RaftMessage new_message);
     void sendMessage(pb::Message *data, std::string receiver_ip);
-    std::vector<pb::RaftMessage> queue_update;
 
     void setMyIp(uint32_t ip);
     void setMyIp(std::string ip);
+    void resetFlags(pb::RaftMessage *msg);
     void setRouter(Router *router);
 
 public slots:
@@ -71,29 +73,34 @@ signals:
     void messageReceived(pb::Message *msg);
 
 private:
+    std::vector<pb::RaftMessage> log_local;
+    std::vector<QUEUESEND> queue_send_stuf;
+    std::vector<QUEUELEADER> queue_leader;
+
     STATES state;
     time_t timer;
-    time_t time_now;
-    bool first_time_candidate;
     time_t special_timer;			// timer for leader and candidate
-    std::vector<pb::RaftMessage> log_local;
+    time_t time_now;
+
+    Router *router;
+    pb::Message data;
+    pb::RaftMessage send;
+
+    std::string my_ip;
+    uint32_t my_ip_int;
+
     int prev_log_size;
     int vote;
     int current_term;
-    bool first_time;
-    std::vector<QUEUESEND> queue_send_stuf;
     int index;
-    std::vector<QUEUELEADER> queue_leader;
     int not_vote;
     int msg_id;
     int good_ack_back;
+
+    bool first_time_candidate;
+    bool first_time;
     bool leader_can_send;
-    pb::Message data;
-    pb::RaftMessage send;
-    std::string my_ip;
-    uint32_t my_ip_int;
     bool is_updated;
-    Router *router;
 
     void checkTimer();
     void sendRaftMessage(pb::RaftMessage *send);

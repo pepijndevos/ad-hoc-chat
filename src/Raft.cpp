@@ -2,8 +2,7 @@
  * Raft.cpp
  *
  *  Created on: 11 apr. 2017
- *      Author: Antonis Katzourakis & Eva Knol
- group: 3
+ *  group: 1
  */
 
 #include "Raft.h"
@@ -268,12 +267,12 @@ void Raft::handleState(){
     if(queue_send_stuf.size()>0){
         data=queue_send_stuf[0].data;
 
-        // set wht to send
-        send=log_local[log_local.size()-1];
-        send.set_allocated_data(&data);
-        send.set_index(index);
+        if(log_local.size() > 0){
+            send=log_local[log_local.size()-1];
+            send.set_allocated_data(&data);
+            send.set_index(index);
+        }
     }
-
 
     if(state==STATES::FOLLOWER){
         checkTimer();
@@ -390,7 +389,7 @@ void Raft::sendMessage(pb::Message *data, std::string receiver_ip){
     msg_wrapper.splitForRaft(&split_msgs, 512);
 
     for(auto m: split_msgs){
-        send_stuff.data=m;
+        send_stuff.data= m;
         send_stuff.receiver_ip=receiver_ip;
         send_stuff.sender_ip=my_ip;
 
@@ -402,12 +401,21 @@ void Raft::sendMessage(pb::Message *data, std::string receiver_ip){
 void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     /* Send a raft message to the router */
     leader_can_send=false;
+
     pb::Packet pkt;
     pkt.set_sender_ip(my_ip_int);
     pkt.set_message_type(pb::Packet::RAFT);
     pb::RaftMessage *tmp_msg = pkt.mutable_raft_msg();
     *tmp_msg = *raft_msg;
     router->sendMessage(&pkt);
+
+    resetFlags(raft_msg);
+}
+
+void Raft::resetFlags(pb::RaftMessage *msg){
+    /* Reset the flags of a raft message */
+    ::google::protobuf::RepeatedField<int> *mflags = msg->mutable_flags();
+    mflags->erase(mflags->begin(), mflags->end());
 }
 
 void Raft::setRouter(Router *router){
