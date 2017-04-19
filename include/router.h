@@ -17,7 +17,7 @@ public slots:
     void sendMessage(pb::Packet *pkt);
     void routeMessage(pb::Packet *pkt);
 
-    void retransmit(unsigned int sn);
+    void retransmit(unsigned int sn, unsigned int count);
 
 signals:
     void messageReceived(pb::Packet *pkt);

@@ -28,6 +28,15 @@ Raft::Raft() :
     QTimer *handle_state_timer = new QTimer(this);
     connect(handle_state_timer, SIGNAL(timeout()), this, SLOT(handleState()));
     handle_state_timer->start(HANDLE_STATE_TIMER);
+
+    // Connect to router
+    connect(router, &Router::messageReceived, this, &Raft::packetReceived);
+}
+
+void Raft::packetReceived(pb::Packet *pkt){
+    /* Received a new packet */
+    pb::RaftMessage msg = pkt->raft_msg();
+    receivedMessage(&msg);
 }
 
 void Raft::setMyIp(uint32_t ip){
@@ -302,7 +311,8 @@ void Raft::checkTimer(){
  * Add to queues if you got a specific message
  * Delete some memory when the queue is to big
  * TODO? if i got to many messages i have to make another function that handles the queue */
-void Raft::receivedMessage(pb::RaftMessage new_message){
+void Raft::receivedMessage(pb::RaftMessage *msg){
+    pb::RaftMessage new_message = *msg;
     log_local.push_back(new_message);
 
     // if you got a message with a flag update with you as receiver, add data to the queue update

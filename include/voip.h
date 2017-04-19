@@ -7,7 +7,6 @@ class Voip : public QObject {
 public:
     explicit Voip(QObject *parent = 0);
 
-
 private slots:
     void handleStateChanged(QAudio::State);
     void processPendingDatagrams();

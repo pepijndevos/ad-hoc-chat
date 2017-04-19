@@ -58,7 +58,7 @@ public:
 
     std::vector<pb::RaftMessage> queue_update;
 
-    void receivedMessage(pb::RaftMessage new_message);
+    void receivedMessage(pb::RaftMessage *msg);
     void sendMessage(pb::Message *data, std::string receiver_ip);
 
     void setMyIp(uint32_t ip);
@@ -68,6 +68,7 @@ public:
 
 public slots:
     void handleState();
+    void packetReceived(pb::Packet *pkt);
 
 signals:
     void messageReceived(pb::Message *msg);
