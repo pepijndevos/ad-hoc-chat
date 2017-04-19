@@ -50,4 +50,6 @@ DISTFILES += \
     Message.proto \
     Packet.proto \
     ChatMessage.proto \
-    Protobufs/Raft.proto
+    Protobufs/Raft.proto \
+    README.md \
+    NOTES.md
