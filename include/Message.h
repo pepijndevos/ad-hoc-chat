@@ -31,7 +31,7 @@ public:
 
     // File messages
     Filetypes getFiletype();
-    bool isFile();   // If the message includes text, or byte stream
+    bool isFile();   // If the message includes text or a file
 private:
     pb::Message *msg;
 

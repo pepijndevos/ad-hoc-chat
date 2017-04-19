@@ -11,7 +11,7 @@
 #define HANDLE_STATE_TIMER  300         // in ms
 #define TIMER_EXPIRE        10          // in sec
 #define HEART_BEAT_INCR     6           // in sec
-#define NODES               4
+#define NODES               3 //dbg testing
 #define MAX_SIZE            500
 
 #include <QObject>
@@ -99,6 +99,7 @@ private:
     bool is_updated;
 
     void checkTimer();
+    void setFlag(pb::RaftMessage *msg, pb::RaftMessage::Flags flag);
     void sendRaftMessage(pb::RaftMessage *send);
     void follower(pb::RaftMessage *m);
     void candidate(pb::RaftMessage *m);

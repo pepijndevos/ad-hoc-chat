@@ -11,7 +11,7 @@ Raft::Raft() :
     state(STATES::FOLLOWER),
     timer(0),
     time_now(0),
-    first_time_candidate(false),
+    first_time_candidate(true),
     special_timer(0),
     prev_log_size(0),
     vote(0),
@@ -21,6 +21,10 @@ Raft::Raft() :
     msg_id(0),
     good_ack_back(0),
     is_updated(false){
+
+//    log_local = std::vector<pb::RaftMessage>{};
+//    queue_send_stuf = std::vector<QUEUESEND>{};
+//    queue_leader = std::vector<QUEUELEADER>{};
 
     // Timer for handle state
     QTimer *handle_state_timer = new QTimer(this);
@@ -50,7 +54,10 @@ void Raft::setMyIp(std::string ip){
  *  */
 void Raft::follower(pb::RaftMessage *m){
     pb::RaftMessage send;
-    send.CopyFrom(*m);
+    send.mutable_flags(); // hck
+    if(m->IsInitialized())
+        send.CopyFrom(*m);
+
     // got message so increment time
     if(prev_log_size!=log_local.size()){
         srand (time(NULL));
@@ -62,17 +69,17 @@ void Raft::follower(pb::RaftMessage *m){
         if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::CANDIDATE){
             if(current_term<log_local[log_local.size()-1].term()){
                 current_term=log_local[log_local.size()-1].term();
-                send.add_flags(pb::RaftMessage::VOTE);
+                setFlag(&send, pb::RaftMessage::VOTE);
                 sendRaftMessage(&send);
                 return;
             }
-            send.add_flags(pb::RaftMessage::NO_VOTE);
+            setFlag(&send, pb::RaftMessage::NO_VOTE);
             sendRaftMessage(&send);
             return;
         }
 
         // send ACK back
-        send.add_flags(pb::RaftMessage::ACK);
+        setFlag(&send, pb::RaftMessage::ACK);
         sendRaftMessage(&send);
         return;
     }
@@ -85,23 +92,28 @@ void Raft::follower(pb::RaftMessage *m){
  * */
 void Raft::candidate(pb::RaftMessage *m){
     pb::RaftMessage send;
-    send.CopyFrom(*m);
+    send.mutable_flags(); // hck
+
+    if(m->IsInitialized())
+        send.CopyFrom(*m);
+
     // every time a new election start, use a special timer for sending again vote on me message
-    if(!first_time_candidate){
+    if(first_time_candidate){
+        first_time_candidate=false;
         vote=1;
         current_term++;
         special_timer=time(nullptr);
         msg_id++;
         send.set_msg_id(msg_id);
         send.set_term(current_term);
-        send.add_flags(pb::RaftMessage::CANDIDATE);
+        setFlag(&send, pb::RaftMessage::CANDIDATE);
         sendRaftMessage(&send);
         return;
     }
 
     // special time expired send again vote on me
     if(time_now-special_timer>TIMER_EXPIRE/2){
-        first_time_candidate=false;
+        first_time_candidate=true;
     }
 
     // received messages
@@ -113,10 +125,10 @@ void Raft::candidate(pb::RaftMessage *m){
             vote=0;
             timer=time(nullptr);
             current_term=log_local[log_local.size()-1].term();
-            send.add_flags(pb::RaftMessage::ACK);
+            setFlag(&send, pb::RaftMessage::ACK);
             sendRaftMessage(&send);
             return;
-        } else 	if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::VOTE){
+        } else if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::VOTE){
             vote++;
         }else if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::NO_VOTE){
             not_vote++;
@@ -127,14 +139,18 @@ void Raft::candidate(pb::RaftMessage *m){
             state=STATES::LEADER;
             special_timer=time(nullptr);
             vote=0;
-            send.add_flags(pb::RaftMessage::LEADER);
+            setFlag(&send, pb::RaftMessage::LEADER);
             sendRaftMessage(&send);
             return;
         }else if(not_vote>=NODES/2){
             state=STATES::FOLLOWER;
             timer=time(nullptr);
             vote=0;
-            send.add_flags(pb::RaftMessage::ACK);
+            setFlag(&send, pb::RaftMessage::ACK);
+            sendRaftMessage(&send);
+            return;
+        }else if(log_local[log_local.size()-1].flags(0)==pb::RaftMessage::CANDIDATE){
+            setFlag(&send, pb::RaftMessage::NO_VOTE);
             sendRaftMessage(&send);
             return;
         }
@@ -147,14 +163,18 @@ void Raft::candidate(pb::RaftMessage *m){
  * If his queue is empty he still sends a heart beat */
 void Raft::leader(pb::RaftMessage *m){
     pb::RaftMessage send;
-    send.CopyFrom(*m);
+    send.mutable_flags(); // hck
+
+    if(m->IsInitialized())
+        send.CopyFrom(*m);
+
     // the message has a higher term than you, become a follower
     if(current_term <= log_local[log_local.size()-1].term()){
         state=STATES::FOLLOWER;
         timer=time(0);
         current_term=log_local[log_local.size()-1].term();
         queue_leader.erase(queue_leader.begin(), queue_leader.end());
-        send.add_flags(pb::RaftMessage::ACK);
+        setFlag(&send, pb::RaftMessage::ACK);
         sendRaftMessage(&send);
         return;
     }
@@ -209,7 +229,7 @@ void Raft::leader(pb::RaftMessage *m){
                 && log_local[log_local.size()-1].receiver_ip() != my_ip
                 && is_updated){
             is_updated=false;
-            send.add_flags(pb::RaftMessage::DATA_OK);
+            setFlag(&send, pb::RaftMessage::DATA_OK);
             sendRaftMessage(&send);
             for(int i=0; i<queue_leader.size(); i++){
                 if(log_local[log_local.size()-1].sender_ip() == queue_leader[i].queue_send.sender_ip
@@ -228,12 +248,12 @@ void Raft::leader(pb::RaftMessage *m){
 
     // if queue of the leader is empty, still send heart beat
     if(queue_leader.size()==0){
-        send.add_flags(pb::RaftMessage::NO_CHANGE);
+        setFlag(&send, pb::RaftMessage::NO_CHANGE);
         sendRaftMessage(&send);
         return;
     }else{
         is_updated=true;
-        send.add_flags(pb::RaftMessage::UPDATE);
+        setFlag(&send, pb::RaftMessage::UPDATE);
 
         // there is one message in queue, send that one
         if(queue_leader.size()==1){
@@ -418,7 +438,14 @@ void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     pkt.set_message_type(pb::Packet::RAFT);
     pb::RaftMessage *tmp_msg = pkt.mutable_raft_msg();
     *tmp_msg = *raft_msg;
+
     router->sendMessage(&pkt);
+}
+
+void Raft::setFlag(pb::RaftMessage *msg, pb::RaftMessage::Flags flag){
+    // Set the flag of a message
+    msg->clear_flags();
+    msg->add_flags(flag);
 }
 
 void Raft::setRouter(Router *router){
