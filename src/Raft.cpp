@@ -49,7 +49,8 @@ void Raft::setMyIp(std::string ip){
  * Send current term, a flag, my ip, data (first one that is in my queue or zero), my index value (how big my queue send stuff is), send message id from previous one
  *  */
 void Raft::follower(pb::RaftMessage *m){
-    pb::RaftMessage send = *m;
+    pb::RaftMessage send;
+    send.CopyFrom(*m);
     // got message so increment time
     if(prev_log_size!=log_local.size()){
         srand (time(NULL));
@@ -83,7 +84,8 @@ void Raft::follower(pb::RaftMessage *m){
  * Check what to send back, only send stuff if your state changes!
  * */
 void Raft::candidate(pb::RaftMessage *m){
-    pb::RaftMessage send = *m;
+    pb::RaftMessage send;
+    send.CopyFrom(*m);
     // every time a new election start, use a special timer for sending again vote on me message
     if(!first_time_candidate){
         vote=1;
@@ -144,7 +146,8 @@ void Raft::candidate(pb::RaftMessage *m){
  * If the leader receives the majority of the ACK message he can send stuff otherwise repeat previous message (special timer expired)
  * If his queue is empty he still sends a heart beat */
 void Raft::leader(pb::RaftMessage *m){
-    pb::RaftMessage send = *m;
+    pb::RaftMessage send;
+    send.CopyFrom(*m);
     // the message has a higher term than you, become a follower
     if(current_term <= log_local[log_local.size()-1].term()){
         state=STATES::FOLLOWER;
@@ -273,8 +276,12 @@ void Raft::handleState(){
          pb::Message data=queue_send_stuf[0].data;
 
         if(log_local.size() > 0){
-            send=log_local[log_local.size()-1];
-            send.set_allocated_data(&data);
+            send.CopyFrom(log_local[log_local.size()-1]);
+            if(data.IsInitialized()){
+                pb::Message *d = send.mutable_data();
+                *d = data;
+            }
+
             send.set_index(index);
         }
     }
@@ -416,8 +423,7 @@ void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
 
 void Raft::resetFlags(pb::RaftMessage *msg){
     /* Reset the flags of a raft message */
-    ::google::protobuf::RepeatedField<int> *mflags = msg->mutable_flags();
-    mflags->erase(mflags->begin(), mflags->end());
+    msg->clear_flags();
 }
 
 void Raft::setRouter(Router *router){
