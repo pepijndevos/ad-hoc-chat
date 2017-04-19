@@ -66,48 +66,26 @@ void ChatManager::handleMessage(pb::Packet p) {
         pb::Message msg = p.msg();
 
         if(msg.is_file() == true){
-            // TODO:
-            //   1) For now, it assumes it is an image or a generic filetype
-            //       with an empty caption.
-            //   2) Support retina displays (images are pixelated)
-            //
-
-            bool no_dl_flag = false;            // Don't download data you send.
-            if(msg.name() == name.toUtf8().constData()){
-                msg.set_name("Me");
-                no_dl_flag = true;
-            }
-
             // Prepare download path
             QString download_dir = QDir::homePath() + QDir::separator() + "ChatDownloads";
             QDir dl;
             dl.mkpath(download_dir);
             QFile save_file(download_dir + QDir::separator() + QString::fromStdString(msg.file_name()));
 
-            std::string filetype;
-            switch(utils::getFiletype(QString::fromStdString(msg.file_name()))){
-                case Filetypes::JPG:
-                    filetype = "JPG";
-                    break;
-                case Filetypes::PNG:
-                    filetype = "PNG";
-                    break;
-                default: // Default to GENERIC
-                    filetype = "GENERIC";
-                    break;
+            if (save_file.open(QIODevice::ReadWrite)) {
+                save_file.seek(msg.msg_seq());
+                save_file.write(msg.data().data(), msg.data().size());
+            } else {
+                qDebug("Error writing to file");
             }
 
-            QByteArray byte_array(&(msg.data())[0u], msg.data().length());
-
-            if(filetype == "PNG" || filetype == "JPG"){
+            if(!msg.more()){
+                qDebug("Last packet received");
                 QPixmap recvd_image;
-                if(recvd_image.loadFromData(byte_array, filetype.c_str())){
+                if(recvd_image.load(save_file.fileName())){
                     // If successfully loaded
+                    qDebug("Image loaded");
                     QIcon img(recvd_image);
-
-                    // Save image
-                    if(!no_dl_flag)
-                        recvd_image.save(save_file.fileName(), filetype.c_str());
 
                     // Display to the chat
                     chatwindow->displayImage(
@@ -116,13 +94,9 @@ void ChatManager::handleMessage(pb::Packet p) {
                         img,
                         ""
                     );
-                 }
-            } else {
-                // Generic file: Save to temp directory
-                if (save_file.open(QIODevice::ReadWrite)) {
-                    if(!no_dl_flag)
-                        save_file.write(byte_array);
-
+                } else {
+                    qDebug("Invalid image");
+                    // Generic file: Save to temp directory
                     chatwindow->writeMessage(
                         QString::fromStdString(msg.chatname()),
                         QString::fromStdString(msg.name()),
@@ -159,20 +133,30 @@ void ChatManager::sendMessage(QString chatname, QString message) {
 
 void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename){
     /* Construct a packet of a file and send it to a chat */
-    pb::Packet p;
     QFileInfo fi(filename);
     filename = fi.fileName();
-
-    p.set_message_type(pb::Packet::MESSAGE);
-    p.set_sender_ip(my_ip);
-
+    pb::Packet p;
     pb::Message *msg = p.mutable_msg();
-    msg->set_data(data->toStdString());
-    msg->set_file_name(filename.toStdString());
-    msg->set_name(name.toStdString());
-    msg->set_is_file(true);
+    msg->set_more(true);
+    int idx = 0;
+    int chunksize = 512;
+    while(msg->more()) {
+        QByteArray section = data->mid(idx, chunksize);
 
-    sendPacket(p, chatname);
+        p.set_message_type(pb::Packet::MESSAGE);
+        p.set_sender_ip(my_ip);
+
+        msg->set_data(section.data(), section.size());
+        msg->set_file_name(filename.toStdString());
+        msg->set_name(name.toStdString());
+        msg->set_is_file(true);
+        msg->set_msg_seq(idx);
+        idx += chunksize;
+        msg->set_more(idx < data->size());
+
+        sendPacket(p, chatname);
+        QThread::msleep(10);
+    }
 }
 
 void ChatManager::sendFile(QString chatname, QString filepath){
@@ -181,7 +165,6 @@ void ChatManager::sendFile(QString chatname, QString filepath){
      */
     QFile file(filepath);
     QString filename = file.fileName();
-    Filetypes filetype = utils::getFiletype(filename);
 
     if (file.open(QIODevice::ReadOnly)){
         QByteArray file_data = file.readAll();
