@@ -84,8 +84,6 @@ private:
     time_t time_now;
 
     Router *router;
-    pb::Message data;
-    pb::RaftMessage send;
 
     std::string my_ip;
     uint32_t my_ip_int;
@@ -99,15 +97,13 @@ private:
     int good_ack_back;
 
     bool first_time_candidate;
-    bool first_time;
-    bool leader_can_send;
     bool is_updated;
 
     void checkTimer();
     void sendRaftMessage(pb::RaftMessage *send);
-    void follower();
-    void candidate();
-    void leader();
+    void follower(pb::RaftMessage *m);
+    void candidate(pb::RaftMessage *m);
+    void leader(pb::RaftMessage *m);
 };
 
 #endif /* RAFT_H_ */

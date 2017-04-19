@@ -16,12 +16,10 @@ Raft::Raft() :
     prev_log_size(0),
     vote(0),
     current_term(0),
-    first_time(true),
     index(0),
     not_vote(0),
     msg_id(0),
     good_ack_back(0),
-    leader_can_send(false),
     is_updated(false){
 
     // Timer for handle state
@@ -50,8 +48,8 @@ void Raft::setMyIp(std::string ip){
  * Check what to send back
  * Send current term, a flag, my ip, data (first one that is in my queue or zero), my index value (how big my queue send stuff is), send message id from previous one
  *  */
-void Raft::follower(){
-
+void Raft::follower(pb::RaftMessage *m){
+    pb::RaftMessage send = *m;
     // got message so increment time
     if(prev_log_size!=log_local.size()){
         srand (time(NULL));
@@ -84,8 +82,8 @@ void Raft::follower(){
  * Got the majority of the votes, you become leader
  * Check what to send back, only send stuff if your state changes!
  * */
-void Raft::candidate(){
-
+void Raft::candidate(pb::RaftMessage *m){
+    pb::RaftMessage send = *m;
     // every time a new election start, use a special timer for sending again vote on me message
     if(!first_time_candidate){
         vote=1;
@@ -145,8 +143,8 @@ void Raft::candidate(){
  * The leader handles what the clients/he wants
  * If the leader receives the majority of the ACK message he can send stuff otherwise repeat previous message (special timer expired)
  * If his queue is empty he still sends a heart beat */
-void Raft::leader(){
-
+void Raft::leader(pb::RaftMessage *m){
+    pb::RaftMessage send = *m;
     // the message has a higher term than you, become a follower
     if(current_term <= log_local[log_local.size()-1].term()){
         state=STATES::FOLLOWER;
@@ -159,7 +157,7 @@ void Raft::leader(){
     }
 
     // if previous data is received good
-    if(is_updated==true && leader_can_send==true ){
+    if(is_updated==true && good_ack_back >= NODES/2){
         for(int i=0; i<queue_leader.size()-1; i++){
             if(queue_leader[i].queue_send.sender_ip==my_ip          //  I am the the sender_ip, eraser that from queue
                     && log_local[log_local.size()-1].receiver_ip()==queue_leader[i].queue_send.receiver_ip
@@ -195,7 +193,7 @@ void Raft::leader(){
 
     // leader can send if he has the majority of the ACK back otherwise send again the same message
     time_now=time(0);
-    if(leader_can_send==true || time_now-special_timer>TIMER_EXPIRE/2){
+    if(good_ack_back >= NODES/2 || time_now-special_timer>TIMER_EXPIRE/2){
         if(time_now-special_timer>TIMER_EXPIRE/2){
             is_updated=false;
         }
@@ -268,10 +266,11 @@ void Raft::leader(){
  * only check the time of the follower*/
 void Raft::handleState(){
     time_now=time(0);
+    pb::RaftMessage send;
 
     // set the data
     if(queue_send_stuf.size()>0){
-        data=queue_send_stuf[0].data;
+         pb::Message data=queue_send_stuf[0].data;
 
         if(log_local.size() > 0){
             send=log_local[log_local.size()-1];
@@ -282,11 +281,11 @@ void Raft::handleState(){
 
     if(state==STATES::FOLLOWER){
         checkTimer();
-        follower();
+        follower(&send);
     }else if(state==STATES::CANDIDATE){
-        candidate();
+        candidate(&send);
     }else if(state==STATES::LEADER){
-        leader();
+        leader(&send);
     }else{ // error, become follower
         std::cout << "\nError, not a state!";
         state=STATES::FOLLOWER;
@@ -352,10 +351,8 @@ void Raft::receivedMessage(pb::RaftMessage *msg){
     if(state==STATES::LEADER){
         if(new_message.msg_id()==msg_id && log_local[log_local.size()-1].flags(0)==pb::RaftMessage::ACK){
             good_ack_back++;
-            if(good_ack_back==NODES/2 ){
+            if(good_ack_back>=NODES/2){
                 msg_id++;
-                good_ack_back=0;
-                leader_can_send=true;
             }
         }
 
@@ -407,8 +404,6 @@ void Raft::sendMessage(pb::Message *data, std::string receiver_ip){
 
 void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     /* Send a raft message to the router */
-    leader_can_send=false;
-
     pb::Packet pkt;
     pkt.set_sender_ip(my_ip_int);
     pkt.set_message_type(pb::Packet::RAFT);
