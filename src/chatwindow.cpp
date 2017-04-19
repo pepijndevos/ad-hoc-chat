@@ -99,7 +99,7 @@ void ChatWindow::editChatRecipients(){
     bool ok;
     QString recipients = QInputDialog::getText(this, tr("Edit Chat Recipients"), tr("Comma-separated IPs:"), QLineEdit::Normal, "", &ok);
     if(ok && !recipients.isEmpty()){
-        emit recipientsChanged(current_chat, recipients.toUtf8().constData());
+        emit recipientsChanged(current_chat, recipients.split(','));
     }
 }
 
@@ -122,11 +122,13 @@ void ChatWindow::setChatIconSizes(QSize size){
 
 void ChatWindow::writeMessage(QString chatname, QString sender, QString message) {
     /* Add a received/sent message to the specified chat */
+    if(!chats->contains(chatname)) addChat(chatname, true);
     chats->value(chatname)->writeMessage(sender, message);
 }
 
 void ChatWindow::displayImage(QString chatname, QString sender, QIcon image, QString caption){
     /* Display a received/sent image to the specified chat */
+    if(!chats->contains(chatname)) addChat(chatname, true);
     chats->value(chatname)->displayImage(sender, image, caption);
 }
 

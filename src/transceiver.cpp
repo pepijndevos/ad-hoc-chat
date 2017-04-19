@@ -34,7 +34,7 @@ void Transceiver::processPendingDatagrams() {
         pb::Packet pkt;
         pkt.ParseFromArray(datagram.data(), datagram.size());
 
-        //qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
+        qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
 
         emit messageReceived(pkt);
     }

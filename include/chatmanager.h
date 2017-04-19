@@ -33,7 +33,7 @@ public slots:
 
     void notifyPresence();
     void chatChanged(int chatindex, StateChange change);
-    void recipientsChanged(int chatindex, std::string new_rcpnts);
+    void recipientsChanged(int chatindex, QStringList new_rcpnts);
 
 private slots:
     void sendFileAtPath(QString chatname, QString filepath);

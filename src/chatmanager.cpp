@@ -29,33 +29,15 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(pa
 
     // Default Chat recipients for each chat tab:
     recipients = {
-        {"192.168.5.1", "192.168.5.2", "192.168.5.3", "192.168.5.4"},
-        {"192.168.5.1"},
-        {"192.168.5.2"},
-        {"192.168.5.3"},
-        {"192.168.5.4"}
+        {"192.168.5.1", "192.168.5.2", "192.168.5.3", "192.168.5.4"}
     };
 
     chatnames = {
         "Group Chat",
-        "Hessel",
-        "Eva",
-        "Antonis",
-        "Pepijn"
     };
 
-    int rmv = -1;
     for(int c=0; c<chatnames.size(); c++){
-        if (chatnames[c] == name){
-            rmv = c;
-            continue;
-        }
         w->addChat(chatnames[c], false);
-    }
-
-    if (rmv >= 0){ // Remove the chat to myself
-        recipients.erase(recipients.begin() + rmv);
-        chatnames.erase(chatnames.begin() + rmv);
     }
 
     w->goToChat(0);
@@ -64,6 +46,18 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(pa
 void ChatManager::handleMessage(pb::Packet p) {
     if (p.message_type() == pb::Packet::MESSAGE) {
         pb::Message msg = p.msg();
+
+        QStringList recipients;
+        //recipients.append(QHostAddress(p.sender_ip()).toString());
+        for(auto ipstr : p.receiver_ip()) {
+            recipients.append(QHostAddress(ipstr).toString());
+        }
+        for(int c=0; c<chatnames.size(); c++){
+            if (QString::fromStdString(msg.chatname()) == chatnames[c]){
+                recipientsChanged(c, recipients);
+                break;
+            }
+        }
 
         if(msg.is_file() == true){
             // Prepare download path
@@ -243,16 +237,15 @@ void ChatManager::chatChanged(int chatindex, StateChange change){
     }
 }
 
-void ChatManager::recipientsChanged(int chatindex, std::string new_rcpnts){
+void ChatManager::recipientsChanged(int chatindex, QStringList new_rcpnts){
     /* Signal received that the recipients of a chat changed */
     std::vector<QString> new_recipients;
 
-    std::vector<std::string> x = utils::split(new_rcpnts, ',');
     qDebug() << "Changed recipients of " << chatnames[chatindex] << " to ";
 
-    for(int r=0; r < x.size(); r++){ // Remove all spaces
-        new_recipients.push_back(QString::fromStdString(x[r]).trimmed());
-        qDebug() << new_recipients[r] << "\n";
+    for(QString ipstr : new_rcpnts){ // Remove all spaces
+        new_recipients.push_back(ipstr.trimmed());
+        qDebug() << ipstr.trimmed();
     }
 
     recipients[chatindex] = new_recipients;
