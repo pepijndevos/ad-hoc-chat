@@ -1,7 +1,6 @@
 #include "voip.h"
 
 Voip::Voip(QObject *parent) : QObject(parent) {
-    QAudioFormat format;
     // Set up the desired format, for example:
     format.setSampleRate(8000);
     format.setChannelCount(1);
@@ -19,21 +18,11 @@ Voip::Voip(QObject *parent) : QObject(parent) {
 
     audioIn = new QAudioInput(format, this);
     connect(audioIn, &QAudioInput::stateChanged, this, &Voip::handleStateChanged);
-    qDebug() << audioIn->periodSize() << audioIn->bufferSize();
-
-    audioOut = new QAudioOutput(format, this);
-    connect(audioOut, &QAudioOutput::stateChanged, this, &Voip::handleStateChanged);
-    audioOut->setBufferSize(8000);
-    qDebug() << audioOut->periodSize() << audioOut->bufferSize();
-
-    //connect(router, &Router::messageReceived,
-    //        this, &Voip::processPendingMessage);
 
     inbuf = audioIn->start();
     connect(inbuf, &QIODevice::readyRead,
             this, &Voip::processPendingAudio);
 
-    outbuf = audioOut->start();
 }
 
 void Voip::processPendingAudio() {
@@ -46,8 +35,19 @@ void Voip::processPendingAudio() {
 
 void Voip::processPendingMessage(pb::Packet p) {
     if(p.message_type() == pb::Packet::VOIP) {
+        quint32 ip = p.sender_ip();
+        QIODevice *buf;
+        if(!outbuf.contains(ip)) {
+            QAudioOutput *audio = new QAudioOutput(format, this);
+            connect(audio, &QAudioOutput::stateChanged, this, &Voip::handleStateChanged);
+            audio->setBufferSize(8000);
+            buf = audio->start();
+            outbuf.insert(ip, buf);
+        } else {
+            buf = outbuf.value(ip);
+        }
         std::string data = p.audio();
-        outbuf->write(data.data(), data.size());
+        buf->write(data.data(), data.size());
     }
 }
 

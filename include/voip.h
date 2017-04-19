@@ -22,9 +22,8 @@ signals:
 private:
     QHostAddress groupAddress;
     QHostAddress my_ip;
+    QAudioFormat format;
     QAudioInput* audioIn;
-    QAudioOutput* audioOut;
-    QIODevice *outbuf;
     QIODevice *inbuf;
-    QUdpSocket *udpSocket;
+    QMap<quint32, QIODevice*> outbuf;
 };
