@@ -48,9 +48,12 @@ void ChatManager::handleMessage(pb::Packet p) {
         pb::Message msg = p.msg();
 
         QStringList recipients;
-        //recipients.append(QHostAddress(p.sender_ip()).toString());
-        for(auto ipstr : p.receiver_ip()) {
-            recipients.append(QHostAddress(ipstr).toString());
+        recipients.append(QHostAddress(p.sender_ip()).toString());
+        for(auto ip : p.receiver_ip()) {
+            QString ipstr = QHostAddress(ipstr).toString();
+            if (!recipients.contains(ipstr)) {
+                recipients.append(ipstr);
+            }
         }
         for(int c=0; c<chatnames.size(); c++){
             if (QString::fromStdString(msg.chatname()) == chatnames[c]){
