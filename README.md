@@ -8,3 +8,8 @@ This is an Ad-hoc chat built for the project of the Network Systems module at Ut
 - Qt5 for GUI, networking and inter-communication of different layers.
 - [Raft](https://raft.github.io/) for node synchronisation.
 - Everything is sent over UDP Multicast.
+- Symmetric AES Encryption at the packet level, using [cryptopp](https://www.cryptopp.com/).
+
+
+#### Notes:
+If using MacOS, read the [NOTE.md](NOTE.md) for installing cryptopp using brew.

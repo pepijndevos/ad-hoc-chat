@@ -274,6 +274,8 @@ void Raft::handleState(){
     // set the data
     if(queue_send_stuf.size()>0){
          pb::Message data=queue_send_stuf[0].data;
+         data.set_receiver(queue_send_stuf[0].receiver_ip);
+         data.set_name(queue_send_stuf[0].sender_ip);
 
         if(log_local.size() > 0){
             send.CopyFrom(log_local[log_local.size()-1]);
@@ -417,13 +419,6 @@ void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     pb::RaftMessage *tmp_msg = pkt.mutable_raft_msg();
     *tmp_msg = *raft_msg;
     router->sendMessage(&pkt);
-
-    resetFlags(raft_msg);
-}
-
-void Raft::resetFlags(pb::RaftMessage *msg){
-    /* Reset the flags of a raft message */
-    msg->clear_flags();
 }
 
 void Raft::setRouter(Router *router){

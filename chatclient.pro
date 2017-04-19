@@ -4,7 +4,7 @@ CONFIG += c++11
 
 # External Libs
 INCLUDEPATH += "$${PWD}/extern_libs/include"
-LIBS += -L"$${PWD}/extern_libs/lib" -lprotobuf
+LIBS += -L"$${PWD}/extern_libs/lib" -lprotobuf -lcryptopp
 
 INCLUDEPATH += ./include
 
@@ -25,7 +25,6 @@ SOURCES += src/main.cpp\
            src/Message.cpp \
            src/utils.cpp \
            src/Raft.cpp
-#    src/Routing.cpp \
 
 HEADERS += include/chatwindow.h \
            include/chatpanel.h \
@@ -41,8 +40,6 @@ HEADERS += include/chatwindow.h \
            include/Message.h \
            include/utils.h \
            include/Raft.h
-#    include/Routing.h \
-
 
 DISTFILES += \
     Message.proto \

@@ -28,6 +28,9 @@ void Transceiver::processPendingDatagrams() {
         datagram.resize(udpSocket->pendingDatagramSize());
         udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
 
+        CFB_Mode<AES>::Decryption cfbDecryption((byte*)key, sizeof(key), (byte*)iv);
+        cfbDecryption.ProcessData((byte*)datagram.data(), (byte*)datagram.data(), datagram.size());
+
         pb::Packet pkt;
         pkt.ParseFromArray(datagram.data(), datagram.size());
 
@@ -42,6 +45,10 @@ void Transceiver::sendMessage(pb::Packet *pkt) {
     int size = pkt->ByteSize();
     datagram.resize(size);
     pkt->SerializeToArray(datagram.data(), size);
+
+    CFB_Mode<AES>::Encryption cfbEncryption((byte*)key, sizeof(key), (byte*)iv);
+    cfbEncryption.ProcessData((byte*)datagram.data(), (byte*)datagram.data(), datagram.size());
+
     udpSocket->writeDatagram(datagram.data(), datagram.size(),
                              groupAddress, 10000);
 

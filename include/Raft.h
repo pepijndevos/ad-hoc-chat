@@ -63,7 +63,6 @@ public:
 
     void setMyIp(uint32_t ip);
     void setMyIp(std::string ip);
-    void resetFlags(pb::RaftMessage *msg);
     void setRouter(Router *router);
 
 public slots:

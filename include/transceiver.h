@@ -5,6 +5,15 @@
 #include <QtNetwork>
 #include "Packet.pb.h"
 
+#include "cryptopp/cryptlib.h"
+#include "cryptopp/filters.h"
+#include "cryptopp/files.h"
+#include "cryptopp/modes.h"
+#include "cryptopp/hex.h"
+#include "cryptopp/aes.h"
+
+using namespace CryptoPP;
+
 class Transceiver : public QObject {
     Q_OBJECT
 
@@ -21,6 +30,9 @@ signals:
 private:
     QHostAddress groupAddress;
     QUdpSocket *udpSocket;
+
+    char key[AES::MAX_KEYLENGTH] = "super secret";
+    char iv[AES::BLOCKSIZE] = "cheese";
 };
 
 #endif // TRANSCEIVER_H_
