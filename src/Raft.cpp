@@ -22,9 +22,9 @@ Raft::Raft() :
     good_ack_back(0),
     is_updated(false){
 
-//    log_local = std::vector<pb::RaftMessage>{};
-//    queue_send_stuf = std::vector<QUEUESEND>{};
-//    queue_leader = std::vector<QUEUELEADER>{};
+    log_local = std::vector<pb::RaftMessage>{};
+    queue_send_stuf = std::vector<QUEUESEND>{};
+    queue_leader = std::vector<QUEUELEADER>{};
 
     // Timer for handle state
     QTimer *handle_state_timer = new QTimer(this);
@@ -180,7 +180,7 @@ void Raft::leader(pb::RaftMessage *m){
     }
 
     // if previous data is received good
-    if(is_updated==true && good_ack_back >= NODES/2){
+    if(is_updated==true && good_ack_back >= NODES/2 - 1){
         for(int i=0; i<queue_leader.size()-1; i++){
             if(queue_leader[i].queue_send.sender_ip==my_ip          //  I am the the sender_ip, eraser that from queue
                     && log_local[log_local.size()-1].receiver_ip()==queue_leader[i].queue_send.receiver_ip
@@ -200,15 +200,20 @@ void Raft::leader(pb::RaftMessage *m){
     }
 
     // if leader want to send stuff add this also in the queue of the leader
-    if(queue_send_stuf.size()!=0){
+    if(queue_send_stuf.size() > 0){
         QUEUELEADER add_to_queue_leader;
-        add_to_queue_leader.queue_send=queue_send_stuf[0];
+        if(queue_send_stuf[0].data.IsInitialized())
+            add_to_queue_leader.queue_send.data.CopyFrom(queue_send_stuf[0].data);
+
+        add_to_queue_leader.queue_send.sender_ip=queue_send_stuf[0].sender_ip;
+        add_to_queue_leader.queue_send.receiver_ip=queue_send_stuf[0].receiver_ip;
+
         add_to_queue_leader.index=index;
         for(int i=0; i<queue_leader.size();i++){
-            if(queue_leader[i].queue_send.receiver_ip==my_ip){
+            if(queue_leader[i].queue_send.sender_ip==my_ip){
                 queue_leader[i]=add_to_queue_leader;
                 break;
-            }else if(i==queue_leader.size()-1 && add_to_queue_leader.queue_send.receiver_ip != queue_leader[i].queue_send.receiver_ip){
+            }else if(i==queue_leader.size()-1 && add_to_queue_leader.queue_send.sender_ip != my_ip){
                 queue_leader.push_back(add_to_queue_leader);
             }
         }
@@ -216,7 +221,7 @@ void Raft::leader(pb::RaftMessage *m){
 
     // leader can send if he has the majority of the ACK back otherwise send again the same message
     time_now=time(0);
-    if(good_ack_back >= NODES/2 || time_now-special_timer>TIMER_EXPIRE/2){
+    if(good_ack_back >= NODES/2 - 1 || time_now-special_timer>TIMER_EXPIRE/2){
         if(time_now-special_timer>TIMER_EXPIRE/2){
             is_updated=false;
         }
@@ -239,11 +244,11 @@ void Raft::leader(pb::RaftMessage *m){
             return;
         }
 
-        QUEUELEADER add_queue_leader;
-        add_queue_leader.index=log_local[log_local.size()-1].index();
-        add_queue_leader.queue_send.data=log_local[log_local.size()-1].data();
-        add_queue_leader.queue_send.sender_ip=log_local[log_local.size()-1].sender_ip();
-        add_queue_leader.queue_send.receiver_ip=log_local[log_local.size()-1].receiver_ip();
+//        QUEUELEADER add_queue_leader;
+//        add_queue_leader.index=log_local[log_local.size()-1].index();
+//        add_queue_leader.queue_send.data=log_local[log_local.size()-1].data();
+//        add_queue_leader.queue_send.sender_ip=log_local[log_local.size()-1].sender_ip();
+//        add_queue_leader.queue_send.receiver_ip=log_local[log_local.size()-1].receiver_ip();
     }
 
     // if queue of the leader is empty, still send heart beat
@@ -257,10 +262,14 @@ void Raft::leader(pb::RaftMessage *m){
 
         // there is one message in queue, send that one
         if(queue_leader.size()==1){
-            send.set_sender_ip(queue_leader[0].queue_send.sender_ip);
-            send.set_receiver_ip(queue_leader[0].queue_send.receiver_ip);
+            *send.mutable_sender_ip() = queue_leader[0].queue_send.sender_ip;
+//            send.set_sender_ip(queue_leader[0].queue_send.sender_ip);
+//            send.set_receiver_ip(queue_leader[0].queue_send.receiver_ip);
             send.set_index(queue_leader[0].index);
-            send.set_allocated_data(&queue_leader[0].queue_send.data);
+//            send.set_allocated_data(&queue_leader[0].queue_send.data);
+            *send.mutable_receiver_ip() = queue_leader[0].queue_send.receiver_ip;
+            *send.mutable_data() = queue_leader[0].queue_send.data;
+
             sendRaftMessage(&send);
             return;
         }
@@ -341,28 +350,38 @@ void Raft::receivedMessage(pb::RaftMessage *msg){
     log_local.push_back(new_message);
 
     // if you got a message with a flag update with you as receiver, add data to the queue update
-    if(new_message.flags(0)==pb::RaftMessage::UPDATE && new_message.receiver_ip()==my_ip){
-        queue_update.push_back(new_message);
-        Message msg_wrapper;
-
-        QHash<int32_t, std::vector<pb::Message>> msgs;
-        int32_t q_msg_id = new_message.msg_id();
-
+    if(new_message.has_data() && new_message.receiver_ip()==my_ip){
+        bool f = false;
         for(auto m: queue_update){
-            msgs[q_msg_id].push_back(m.data());
+            if (m.SerializeAsString() == new_message.SerializeAsString()){
+                f = true;
+            }
         }
 
-        if(msg_wrapper.assembleMessage(&(msgs[q_msg_id]))){
-            pb::Message *msg = msg_wrapper.getMessage();
-            emit messageReceived(msg);
+        // If not found
+        if(!f){
+            queue_update.push_back(new_message);
+            Message msg_wrapper;
 
-            // Delete the message from queue_update
-            std::vector<size_t> msg_indices;
-            for(int i=0; i < queue_update.size(); i++){
-                if(queue_update[i].msg_id() == q_msg_id){
-                    int indx = i - msg_indices.size(); // Index after the removal of the previous element
-                    msg_indices.push_back(indx);
-                    queue_update.erase(queue_update.begin() + indx);
+            QHash<int32_t, std::vector<pb::Message>> msgs;
+            int32_t q_msg_id = new_message.msg_id();
+
+            for(auto m: queue_update){
+                msgs[q_msg_id].push_back(m.data());
+            }
+
+            if(msg_wrapper.assembleMessage(&(msgs[q_msg_id]))){
+                pb::Message *msg = msgs[q_msg_id].data();//msg_wrapper.getMessage();
+                emit messageReceived(msg);
+
+                // Delete the message from queue_update
+                std::vector<size_t> msg_indices;
+                for(int i=0; i < queue_update.size(); i++){
+                    if(queue_update[i].msg_id() == q_msg_id){
+                        int indx = i - msg_indices.size(); // Index after the removal of the previous element
+                        msg_indices.push_back(indx);
+                        queue_update.erase(queue_update.begin() + indx);
+                    }
                 }
             }
         }
@@ -438,6 +457,10 @@ void Raft::sendRaftMessage(pb::RaftMessage *raft_msg){
     pkt.set_message_type(pb::Packet::RAFT);
     pb::RaftMessage *tmp_msg = pkt.mutable_raft_msg();
     *tmp_msg = *raft_msg;
+
+    pb::Message *rft_msg = tmp_msg->mutable_data();
+    tmp_msg->set_sender_ip(rft_msg->name());
+    tmp_msg->set_receiver_ip(rft_msg->receiver());
 
     router->sendMessage(&pkt);
 }

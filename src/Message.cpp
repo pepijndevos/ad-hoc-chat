@@ -97,10 +97,14 @@ bool Message::assembleMessage(std::vector<pb::Message> *msgs){
         if(current_msg.msg_seq() != i)   // No complete message yet (intermediate parts missing)
             return false;
 
-        msg->set_chatname(current_msg.chatname());
-        msg->set_file_name(current_msg.file_name());
-        msg->set_name(current_msg.name());
-        msg->set_receiver(current_msg.receiver());
+        *msg->mutable_chatname() = current_msg.chatname();
+//        msg->set_chatname(current_msg.chatname());
+        *msg->mutable_file_name() = current_msg.file_name();
+//        msg->set_file_name(current_msg.file_name());
+        *msg->mutable_name() = current_msg.name();
+//        msg->set_name(current_msg.name());
+        *msg->mutable_receiver() = current_msg.receiver();
+//        msg->set_receiver(current_msg.receiver());
         msg->set_is_file(current_msg.is_file());
 
         std::string new_data = msg->data() + current_msg.data();

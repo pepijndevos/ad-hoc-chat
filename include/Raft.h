@@ -11,7 +11,7 @@
 #define HANDLE_STATE_TIMER  300         // in ms
 #define TIMER_EXPIRE        10          // in sec
 #define HEART_BEAT_INCR     6           // in sec
-#define NODES               3 //dbg testing
+#define NODES               2 //dbg testing
 #define MAX_SIZE            500
 
 #include <QObject>

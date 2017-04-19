@@ -11,5 +11,5 @@ This is an Ad-hoc chat built for the project of the Network Systems module at Ut
 - Symmetric AES Encryption at the packet level, using [cryptopp](https://www.cryptopp.com/).
 
 
-#### Notes:
-If using MacOS, read the [NOTE.md](NOTE.md) for installing cryptopp using brew.
+#### MacOS Notes:
+If using MacOS, read the [NOTES.md](NOTES.md) for connecting to the Adhoc network and installing cryptopp using brew.
