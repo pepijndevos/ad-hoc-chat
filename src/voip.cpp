@@ -30,10 +30,11 @@ void Voip::processPendingAudio() {
     pb::Packet p;
     p.set_audio(data.data(), data.size());
     p.set_message_type(pb::Packet::VOIP);
-    emit sendAudio(p);
+    emit sendAudio(&p);
 }
 
-void Voip::processPendingMessage(pb::Packet p) {
+void Voip::processPendingMessage(pb::Packet *pkt) {
+    pb::Packet p = *pkt;
     if(p.message_type() == pb::Packet::VOIP) {
         quint32 ip = p.sender_ip();
         QIODevice *buf;

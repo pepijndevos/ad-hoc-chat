@@ -10,37 +10,25 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, Raft *raft, QObject *parent) 
     online = new QHash<quint32, quint32>();
 
     // Signals
-<<<<<<< HEAD
-    QObject::connect(r, &Router::presenceUpdated,
+    connect(r, &Router::presenceUpdated,
                      this, &ChatManager::setOnline);
-    QObject::connect(raft, &Raft::messageReceived,
+    connect(raft, &Raft::messageReceived,
                      this, &ChatManager::handleMessage);
-    QObject::connect(w, &ChatWindow::newMessage,
-                     this, &ChatManager::sendMessage);
-    QObject::connect(w, &ChatWindow::chatChanged,
-                     this, &ChatManager::chatChanged);
-    QObject::connect(w, &ChatWindow::recipientsChanged,
-                     this, &ChatManager::recipientsChanged);
-    QObject::connect(w, &ChatWindow::sendFile,
-                     this, &ChatManager::sendFileAtPath);
-=======
-    connect(r, &Router::messageReceived,
-             this, &ChatManager::handleMessage);
     connect(w, &ChatWindow::newMessage,
-             this, &ChatManager::sendMessage);
+                     this, &ChatManager::sendMessage);
     connect(w, &ChatWindow::chatChanged,
-             this, &ChatManager::chatChanged);
+                     this, &ChatManager::chatChanged);
     connect(w, &ChatWindow::recipientsChanged,
-             this, &ChatManager::recipientsChanged);
+                     this, &ChatManager::recipientsChanged);
     connect(w, &ChatWindow::sendFile,
-             this, &ChatManager::sendFileAtPath);
+                     this, &ChatManager::sendFileAtPath);
     connect(w, &ChatWindow::joinCall,
             this, &ChatManager::joinCall);
->>>>>>> master
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
             this, &ChatManager::notifyPresence);
+
     //timer->start(5000);
 
     // Default Chat recipients for each chat tab:

@@ -10,14 +10,14 @@ public:
     explicit Voip(QObject *parent = 0);
 
 public slots:
-    void processPendingMessage(pb::Packet);
+    void processPendingMessage(pb::Packet*);
 
 private slots:
     void handleStateChanged(QAudio::State);
     void processPendingAudio();
 
 signals:
-    void sendAudio(pb::Packet);
+    void sendAudio(pb::Packet*);
 
 private:
     QHostAddress groupAddress;
