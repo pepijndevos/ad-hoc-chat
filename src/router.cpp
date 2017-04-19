@@ -18,7 +18,7 @@ void Router::sendMessage(pb::Packet p) {
     p.set_ttl(1); // only forward once
 
     pending->insert(sn, p);
-    QTimer::singleShot(200, this, [this, sn] () {retransmit(sn); });
+    QTimer::singleShot(200, this, [this, sn] () {retransmit(sn, 5); });
 
     transceiver->sendMessage(p);
 }
@@ -58,9 +58,10 @@ void Router::routeMessage(pb::Packet p) {
     }
 }
 
-void Router::retransmit(unsigned int sn) {
-    if(pending->contains(sn)) {
-        QTimer::singleShot(200, this, [this, sn] () {retransmit(sn); });
+void Router::retransmit(unsigned int sn, unsigned int count) {
+    if(pending->contains(sn) && count > 0) {
+        count--;
+        QTimer::singleShot(200, this, [this, sn, count] () {retransmit(sn, count); });
         pb::Packet p = pending->value(sn);
         transceiver->sendMessage(p);
     }
