@@ -23,7 +23,6 @@ public slots:
 private slots:
     void sendMessage();
     void selectFile();
-    void makeCall();
 
 signals:
     void newMessage(QString chatname, QString message);
@@ -34,6 +33,5 @@ private:
     QListWidget *chat;
     QPushButton *btn;
     QPushButton *file_btn;
-    QPushButton *call_btn;
     QLineEdit *txt;
 };

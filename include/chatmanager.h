@@ -14,6 +14,7 @@
 
 #include "chatwindow.h"
 #include "router.h"
+#include "voip.h"
 #include "utils.h"
 
 class ChatManager : public QObject {
@@ -28,6 +29,7 @@ public slots:
     void sendMessage(QString chatname, QString message);
     void sendFile(QString chatname, QByteArray *data, QString filename);
     void sendFile(QString chatname, QString filepath);
+    void joinCall();
 
     void notifyPresence();
     void chatChanged(int chatindex, StateChange change);

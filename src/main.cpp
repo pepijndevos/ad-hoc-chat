@@ -2,7 +2,6 @@
 #include "transceiver.h"
 #include "router.h"
 #include "chatmanager.h"
-#include "voip.h"
 #include "Packet.pb.h"
 #include "Message.pb.h"
 

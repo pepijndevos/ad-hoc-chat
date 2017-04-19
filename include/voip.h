@@ -1,5 +1,7 @@
 #include <QtNetwork>
 #include <QtMultimedia>
+#include "router.h"
+#include "Packet.pb.h"
 
 class Voip : public QObject {
     Q_OBJECT
@@ -7,10 +9,15 @@ class Voip : public QObject {
 public:
     explicit Voip(QObject *parent = 0);
 
+public slots:
+    void processPendingMessage(pb::Packet);
+
 private slots:
     void handleStateChanged(QAudio::State);
-    void processPendingDatagrams();
     void processPendingAudio();
+
+signals:
+    void sendAudio(pb::Packet);
 
 private:
     QHostAddress groupAddress;
