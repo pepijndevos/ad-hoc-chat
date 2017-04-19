@@ -13,7 +13,7 @@ Transceiver::Transceiver(QObject *parent) : QObject(parent) {
     QSettings settings;
     QString name = settings.value("interface").toString();
     udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName(name));
-    qDebug() << udpSocket->multicastInterface().name();
+    //qDebug() << udpSocket->multicastInterface().name();
 
     connect(udpSocket, &QUdpSocket::readyRead,
             this, &Transceiver::processPendingDatagrams);
@@ -34,7 +34,7 @@ void Transceiver::processPendingDatagrams() {
         pb::Packet pkt;
         pkt.ParseFromArray(datagram.data(), datagram.size());
 
-        qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
+        //qDebug() << "Packet received" << source.toString() << pkt.DebugString().c_str();
 
         emit messageReceived(pkt);
     }

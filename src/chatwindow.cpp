@@ -14,11 +14,11 @@ ChatWindow::ChatWindow(QWidget *parent) : QMainWindow(parent) {
     connect(newChatAction, &QAction::triggered, this, &ChatWindow::newChatSetup);
 
     // Edit Chat name
-    editChatAction = chatMenu->addAction("Edit Chat name");
+    /*editChatAction = chatMenu->addAction("Edit Chat name");
     QKeySequence CtrlR = QKeySequence(Qt::CTRL + Qt::Key_R);
     editChatAction->setShortcut(CtrlR);
     editChatAction->setStatusTip("Edit chat name");
-    connect(editChatAction, &QAction::triggered, this, &ChatWindow::editChat);
+    connect(editChatAction, &QAction::triggered, this, &ChatWindow::editChat);*/
 
     // Edit Chat recipients
     editChatRcpntsAction = chatMenu->addAction("Edit Chat members");
@@ -64,7 +64,9 @@ void ChatWindow::addChat(QString name){
 
 void ChatWindow::newChatSetup(){
     /* Add a new chat */
-    addChat("New Chat");
+    bool ok;
+    QString chat_name = QInputDialog::getText(this,tr("New chat"), tr("Chat name:"), QLineEdit::Normal, "", &ok);
+    addChat(chat_name);
     tabs->setCurrentIndex(tabs->count() - 1);
 }
 

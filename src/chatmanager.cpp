@@ -178,6 +178,7 @@ void ChatManager::sendPacket(pb::Packet p, QString chatname){
     pb::Message *msg = p.mutable_msg();
 
     for(int c=0; c<chatnames.size(); c++){
+        //qDebug() << chatname << chatnames[c];
         if (chatname == chatnames[c]){
             for(auto r: recipients[c]){
                 p.add_receiver_ip(QHostAddress(r).toIPv4Address());
