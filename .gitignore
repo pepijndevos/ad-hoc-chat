@@ -3,8 +3,7 @@
 moc_*
 *.pb.h
 *.pb.cc
-extern_libs/bin
-extern_libs/include
-extern_libs/lib
+extern_libs/*
+!extern_libs/_external_libraries
 src/Message.pb.cc
 include/Message.pb.h
