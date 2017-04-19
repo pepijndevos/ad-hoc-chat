@@ -4,7 +4,7 @@ CONFIG += c++11
 
 # External Libs
 INCLUDEPATH += "$${PWD}/extern_libs/include"
-LIBS += -L"$${PWD}/extern_libs/lib" -lprotobuf
+LIBS += -L"$${PWD}/extern_libs/lib" -lprotobuf -lcrypto++
 
 INCLUDEPATH += ./include
 
