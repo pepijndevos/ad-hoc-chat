@@ -50,7 +50,8 @@ void ChatManager::handleMessage(pb::Packet p) {
         QStringList recipients;
         recipients.append(QHostAddress(p.sender_ip()).toString());
         for(auto ip : p.receiver_ip()) {
-            QString ipstr = QHostAddress(ipstr).toString();
+            QString ipstr = QHostAddress(ip).toString();
+            //qDebug() << ipstr << recipients;
             if (!recipients.contains(ipstr)) {
                 recipients.append(ipstr);
             }
