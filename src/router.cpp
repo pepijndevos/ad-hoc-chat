@@ -17,7 +17,7 @@ void Router::sendMessage(pb::Packet *p) {
     p->set_sequence_number(sn);
     p->set_ttl(1); // only forward once
 
-    pending->insert(sn, p);
+    pending->insert(sn, *p);
     QTimer::singleShot(200, this, [this, sn] () {retransmit(sn, 5); });
 
     transceiver->sendMessage(p);

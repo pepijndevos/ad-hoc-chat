@@ -28,9 +28,6 @@ Raft::Raft() :
     QTimer *handle_state_timer = new QTimer(this);
     connect(handle_state_timer, SIGNAL(timeout()), this, SLOT(handleState()));
     handle_state_timer->start(HANDLE_STATE_TIMER);
-
-    // Connect to router
-    connect(router, &Router::messageReceived, this, &Raft::packetReceived);
 }
 
 void Raft::packetReceived(pb::Packet *pkt){
@@ -430,4 +427,7 @@ void Raft::resetFlags(pb::RaftMessage *msg){
 
 void Raft::setRouter(Router *router){
     this->router = router;
+
+    // Connect to router receive signal
+    connect(router, &Router::messageReceived, this, &Raft::packetReceived);
 }
