@@ -3,8 +3,6 @@
 #include "router.h"
 #include "chatmanager.h"
 #include "Raft.h"
-#include "voip.h"
-
 #include "Packet.pb.h"
 #include "Message.pb.h"
 

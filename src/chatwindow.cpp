@@ -32,6 +32,11 @@ ChatWindow::ChatWindow(QWidget *parent) : QMainWindow(parent) {
     deleteChatAction->setStatusTip("Delete this chat");
     connect(deleteChatAction, &QAction::triggered, this, &ChatWindow::removeChat);
 
+    // Join call
+    callAction = chatMenu->addAction("Join call");
+    callAction->setStatusTip("Join the conference call");
+    connect(callAction, &QAction::triggered, this, &ChatWindow::joinCall);
+
     menuBar()->addMenu(chatMenu);
     setCentralWidget(tabs);
 }

@@ -1,13 +1,6 @@
 #include "voip.h"
 
 Voip::Voip(QObject *parent) : QObject(parent) {
-    groupAddress = QHostAddress("228.0.0.1");
-    //groupAddress = QHostAddress("127.0.0.1");
-
-    QSettings settings;
-    my_ip = QHostAddress(settings.value("ip").toString());
-
-    QAudioFormat format;
     // Set up the desired format, for example:
     format.setSampleRate(8000);
     format.setChannelCount(1);
@@ -25,50 +18,36 @@ Voip::Voip(QObject *parent) : QObject(parent) {
 
     audioIn = new QAudioInput(format, this);
     connect(audioIn, &QAudioInput::stateChanged, this, &Voip::handleStateChanged);
-    qDebug() << audioIn->periodSize() << audioIn->bufferSize();
-
-    audioOut = new QAudioOutput(format, this);
-    connect(audioOut, &QAudioOutput::stateChanged, this, &Voip::handleStateChanged);
-    audioOut->setBufferSize(8000);
-    qDebug() << audioOut->periodSize() << audioOut->bufferSize();
-
-    udpSocket = new QUdpSocket(this);
-    udpSocket->setSocketOption(QAbstractSocket::MulticastTtlOption, 255);
-    udpSocket->setSocketOption(QAbstractSocket::MulticastLoopbackOption, 0);
-    udpSocket->bind(QHostAddress::AnyIPv4, 10001, QUdpSocket::ShareAddress);
-    udpSocket->joinMulticastGroup(groupAddress);
-
-    QString name = settings.value("interface").toString();
-    udpSocket->setMulticastInterface(QNetworkInterface::interfaceFromName(name));
-
-    connect(udpSocket, &QUdpSocket::readyRead,
-            this, &Voip::processPendingDatagrams);
 
     inbuf = audioIn->start();
     connect(inbuf, &QIODevice::readyRead,
             this, &Voip::processPendingAudio);
 
-    outbuf = audioOut->start();
 }
 
 void Voip::processPendingAudio() {
-    QByteArray datagram = inbuf->readAll();
-    udpSocket->writeDatagram(datagram.data(), datagram.size(),
-                             groupAddress, 10001);
+    QByteArray data = inbuf->readAll();
+    pb::Packet p;
+    p.set_audio(data.data(), data.size());
+    p.set_message_type(pb::Packet::VOIP);
+    emit sendAudio(p);
 }
 
-void Voip::processPendingDatagrams() {
-    /* Handle packet reception */
-    while (udpSocket->hasPendingDatagrams()) {
-        QByteArray datagram;
-        QHostAddress source;
-        datagram.resize(udpSocket->pendingDatagramSize());
-        udpSocket->readDatagram(datagram.data(), datagram.size(), &source);
-
-        if (source == my_ip) return;
-        //qDebug() << source;
-
-        outbuf->write(datagram);
+void Voip::processPendingMessage(pb::Packet p) {
+    if(p.message_type() == pb::Packet::VOIP) {
+        quint32 ip = p.sender_ip();
+        QIODevice *buf;
+        if(!outbuf.contains(ip)) {
+            QAudioOutput *audio = new QAudioOutput(format, this);
+            connect(audio, &QAudioOutput::stateChanged, this, &Voip::handleStateChanged);
+            audio->setBufferSize(8000);
+            buf = audio->start();
+            outbuf.insert(ip, buf);
+        } else {
+            buf = outbuf.value(ip);
+        }
+        std::string data = p.audio();
+        buf->write(data.data(), data.size());
     }
 }
 

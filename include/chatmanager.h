@@ -15,6 +15,7 @@
 #include "Raft.h"
 #include "chatwindow.h"
 #include "router.h"
+#include "voip.h"
 #include "utils.h"
 
 class ChatManager : public QObject {
@@ -30,6 +31,7 @@ public slots:
     void sendFile(QString chatname, QByteArray *data, QString filename);
     void sendFile(QString chatname, QString filepath);
     void sendToRaft(pb::Message *msg, QString chatname);
+    void joinCall();
 
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, std::string new_rcpnts);

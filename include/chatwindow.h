@@ -47,6 +47,7 @@ signals:
     void sendFile(QString chatname, QString filename);
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, std::string recipients);
+    void joinCall();
 
 private:
     QTabWidget *tabs;
@@ -54,6 +55,7 @@ private:
 
     // Menu Bar
     QMenu *chatMenu;
+    QAction *callAction;
     QAction *newChatAction;
     QAction *deleteChatAction;
     QAction *editChatAction;

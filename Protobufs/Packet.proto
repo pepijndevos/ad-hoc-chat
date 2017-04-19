@@ -10,6 +10,8 @@ message Packet {
         PRESENCE = 0;
         ACK = 1;
         RAFT = 2;
+        MESSAGE = 3; // TODO delete once raft works
+        VOIP = 4; // bypass Raft
     }
 
     Type message_type = 1;
@@ -26,4 +28,7 @@ message Packet {
     // once raft works, the raft message will contain
     // the actual message. Until then, we can bypass it.
     Message msg = 9; 
+
+    // Audio data should not go trhough Raft
+    bytes audio = 10;
 }

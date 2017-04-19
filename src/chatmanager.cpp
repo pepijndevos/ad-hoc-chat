@@ -10,6 +10,7 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, Raft *raft, QObject *parent) 
     online = new QHash<quint32, quint32>();
 
     // Signals
+<<<<<<< HEAD
     QObject::connect(r, &Router::presenceUpdated,
                      this, &ChatManager::setOnline);
     QObject::connect(raft, &Raft::messageReceived,
@@ -22,6 +23,20 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, Raft *raft, QObject *parent) 
                      this, &ChatManager::recipientsChanged);
     QObject::connect(w, &ChatWindow::sendFile,
                      this, &ChatManager::sendFileAtPath);
+=======
+    connect(r, &Router::messageReceived,
+             this, &ChatManager::handleMessage);
+    connect(w, &ChatWindow::newMessage,
+             this, &ChatManager::sendMessage);
+    connect(w, &ChatWindow::chatChanged,
+             this, &ChatManager::chatChanged);
+    connect(w, &ChatWindow::recipientsChanged,
+             this, &ChatManager::recipientsChanged);
+    connect(w, &ChatWindow::sendFile,
+             this, &ChatManager::sendFileAtPath);
+    connect(w, &ChatWindow::joinCall,
+            this, &ChatManager::joinCall);
+>>>>>>> master
 
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
@@ -202,6 +217,14 @@ void ChatManager::sendToRaft(pb::Message *msg, QString chatname){
             break;
         }
     }
+}
+
+void ChatManager::joinCall() {
+    Voip *v = new Voip();
+    connect(v, &Voip::sendAudio,
+            router, &Router::sendMessage);
+    connect(router, &Router::messageReceived,
+            v, &Voip::processPendingMessage);
 }
 
 void ChatManager::notifyPresence() {

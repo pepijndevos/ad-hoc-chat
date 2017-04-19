@@ -14,8 +14,9 @@ Router::Router(Transceiver *t, QObject *parent) : QObject(parent), transceiver(t
 
 void Router::sendMessage(pb::Packet *p) {
     unsigned int sn = rand();
-    p->set_sequence_number(sn);
-    p->set_ttl(1); // only forward once
+    p.set_sequence_number(sn);
+    p.set_ttl(1); // only forward once
+    if(p.sender_ip() == 0) p.set_sender_ip(my_ip);
 
     pending->insert(sn, *p);
     QTimer::singleShot(200, this, [this, sn] () {retransmit(sn, 5); });
@@ -36,14 +37,16 @@ void Router::routeMessage(pb::Packet *p) {
         if (p->message_type() == pb::Packet::ACK) {
             handleAck(p);
         } else {
-            pb::Packet ack;
-            ack.set_message_type(pb::Packet::ACK);
-            ack.set_acknowledgment_number(p->sequence_number());
-            ack.set_ttl(1); // only forward once
-            ack.set_sender_ip(my_ip);
-            ack.add_receiver_ip(p->sender_ip());
+            if(p.message_type() != pb::Packet::VOIP) {
+                pb::Packet ack;
+                ack.set_message_type(pb::Packet::ACK);
+                ack.set_acknowledgment_number(p.sequence_number());
+                ack.set_ttl(1); // only forward once
+                ack.set_sender_ip(my_ip);
+                ack.add_receiver_ip(p.sender_ip());
 
-            transceiver->sendMessage(&ack);
+                transceiver->sendMessage(ack);
+            }
 
             QPair<quint32, quint32> msgid(p->sender_ip(), p->sequence_number());
             if (!seen->contains(msgid)) {
