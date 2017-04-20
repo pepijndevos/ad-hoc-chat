@@ -48,6 +48,7 @@ signals:
     void chatChanged(int chatindex, StateChange change);
     void recipientsChanged(int chatindex, QStringList recipients);
     void joinCall();
+    void endCall();
 
 private:
     QTabWidget *tabs;
@@ -56,6 +57,7 @@ private:
     // Menu Bar
     QMenu *chatMenu;
     QAction *callAction;
+    QAction *endCallAction;
     QAction *newChatAction;
     QAction *deleteChatAction;
     QAction *editChatAction;

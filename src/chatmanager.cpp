@@ -21,7 +21,10 @@ ChatManager::ChatManager(Router *r, ChatWindow *w, QObject *parent) : QObject(pa
              this, &ChatManager::sendFileAtPath);
     connect(w, &ChatWindow::joinCall,
             this, &ChatManager::joinCall);
+    connect(w, &ChatWindow::endCall,
+            this, &ChatManager::endCall);
 
+    // Presence
     QTimer *timer = new QTimer(this);
     connect(timer, &QTimer::timeout,
             this, &ChatManager::notifyPresence);
@@ -59,6 +62,24 @@ void ChatManager::handleMessage(pb::Packet p) {
         for(int c=0; c<chatnames.size(); c++){
             if (QString::fromStdString(msg.chatname()) == chatnames[c]){
                 recipientsChanged(c, recipients);
+                break;
+            }
+        }
+
+        // Check if sender is in the chat
+        for(int c=0; c<chatnames.size(); c++){
+            if(chatnames[c].toStdString() == msg.chatname()){
+                bool contained = false;
+                for(QString r: this->recipients[c]){
+                    if(r.toStdString() == utils::getIp(p.sender_ip())){
+                        contained = true;
+                        break;
+                    }
+                }
+
+                if(!contained)
+                    return;     // Discard if not in the chat
+
                 break;
             }
         }
@@ -197,11 +218,18 @@ void ChatManager::sendPacket(pb::Packet p, QString chatname){
 }
 
 void ChatManager::joinCall() {
-    Voip *v = new Voip();
-    connect(v, &Voip::sendAudio,
+    voip = new Voip();
+
+    connect(voip, &Voip::sendAudio,
             router, &Router::sendMessage);
     connect(router, &Router::messageReceived,
-            v, &Voip::processPendingMessage);
+            voip, &Voip::processPendingMessage);
+
+    voip->startCall();
+}
+
+void ChatManager::endCall(){
+    voip->endCall();
 }
 
 void ChatManager::notifyPresence() {
@@ -233,7 +261,7 @@ void ChatManager::chatChanged(int chatindex, StateChange change){
         case RENAMED:
             qDebug() << "Chat `" << chatnames[chatindex] << "` ";
             chatnames[chatindex] = current_chat_names[chatindex];
-            qDebug() << "renamed to " << current_chat_names[chatindex] << "\n";
+            qDebug() << "renamed to " << chatnames[chatindex] << "\n";
             break;
         case DELETED:
             qDebug() << "Deleted Chat " << chatnames[chatindex] << "\n";

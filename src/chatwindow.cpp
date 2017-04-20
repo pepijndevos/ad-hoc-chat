@@ -37,6 +37,11 @@ ChatWindow::ChatWindow(QWidget *parent) : QMainWindow(parent) {
     callAction->setStatusTip("Join the conference call");
     connect(callAction, &QAction::triggered, this, &ChatWindow::joinCall);
 
+    // End call
+    endCallAction = chatMenu->addAction("End call");
+    endCallAction->setStatusTip("Quit the conference call");
+    connect(endCallAction, &QAction::triggered, this, &ChatWindow::endCall);
+
     menuBar()->addMenu(chatMenu);
     setCentralWidget(tabs);
 }

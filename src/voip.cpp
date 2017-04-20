@@ -2,6 +2,8 @@
 
 Voip::Voip(QObject *parent) : QObject(parent) {
     // Set up the desired format, for example:
+    enabled = false;
+
     format.setSampleRate(8000);
     format.setChannelCount(1);
     format.setSampleSize(8);
@@ -30,10 +32,23 @@ void Voip::processPendingAudio() {
     pb::Packet p;
     p.set_audio(data.data(), data.size());
     p.set_message_type(pb::Packet::VOIP);
-    emit sendAudio(p);
+
+    if(enabled)
+        emit sendAudio(p);
+}
+
+void Voip::startCall(){
+    enabled = true;
+}
+
+void Voip::endCall(){
+    enabled = false;
 }
 
 void Voip::processPendingMessage(pb::Packet p) {
+    if(!enabled)
+        return;
+
     if(p.message_type() == pb::Packet::VOIP) {
         quint32 ip = p.sender_ip();
         QIODevice *buf;

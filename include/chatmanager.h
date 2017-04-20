@@ -30,6 +30,7 @@ public slots:
     void sendFile(QString chatname, QByteArray *data, QString filename);
     void sendFile(QString chatname, QString filepath);
     void joinCall();
+    void endCall();
 
     void notifyPresence();
     void chatChanged(int chatindex, StateChange change);
@@ -43,6 +44,7 @@ signals:
 
 private:
     Router* router;
+    Voip *voip;
     ChatWindow *chatwindow;
     quint32 my_ip;
     QString ip_str;

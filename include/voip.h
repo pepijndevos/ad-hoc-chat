@@ -11,6 +11,8 @@ public:
 
 public slots:
     void processPendingMessage(pb::Packet);
+    void startCall();
+    void endCall();
 
 private slots:
     void handleStateChanged(QAudio::State);
@@ -20,6 +22,7 @@ signals:
     void sendAudio(pb::Packet);
 
 private:
+    bool enabled;
     QHostAddress groupAddress;
     QHostAddress my_ip;
     QAudioFormat format;
