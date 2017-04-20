@@ -36,7 +36,7 @@ void Router::sendMessage(pb::Packet p) {
 
     if(!transceiver->sendMessage(p)) {
         sendWindow = (sendWindow >> 1) | 1;
-        qDebug() << sendWindow << "fail";
+        //qDebug() << sendWindow << "fail";
     }
 }
 
@@ -85,25 +85,29 @@ void Router::retransmit(unsigned int sn, unsigned int count) {
         QTimer::singleShot(200, this, [this, sn, count] () {retransmit(sn, count); });
         pb::Packet p = pending->value(sn);
         transceiver->sendMessage(p);
-        qDebug() << sendWindow << "re";
+        //qDebug() << sendWindow << "re";
+    } else {
+        // if it did not arrive after 5 tries, give up
+        pending->remove(sn);
+    }
+
+    while(pending->size() < sendWindow && !sendQueue->isEmpty()) {
+        //qDebug("dequeue");
+        pb::Packet qp = sendQueue->dequeue();
+        sendMessage(qp);
     }
 }
 
 void Router::handleAck(pb::Packet p) {
-    // Possibly we need to handle ACk
-    // from multiple people before 
-    // we consider it delivered
-    //mutable_receiver_ip
-    //erase(const_iterator position)
     int sn = p.acknowledgment_number();
     if(pending->contains(sn)) {
-        qDebug() << sn;
+        //qDebug() << sn;
         pb::Packet pp = pending->value(sn);
         auto receivers = pp.mutable_receiver_ip();
         for (auto it = receivers->begin(); it != receivers->end(); it++) {
-            qDebug() << *it;
+            //qDebug() << *it;
             if (p.sender_ip() == *it) {
-                qDebug() << p.sender_ip() << "erase";
+                //qDebug() << p.sender_ip() << "erase";
                 receivers->erase(it);
                 break;
             }
@@ -116,8 +120,8 @@ void Router::handleAck(pb::Packet p) {
     }
 
     sendWindow++;
-    qDebug() << sendWindow << "ack";
-    if(pending->size() < sendWindow && !sendQueue->isEmpty()) {
+    //qDebug() << sendWindow << "ack";
+    while(pending->size() < sendWindow && !sendQueue->isEmpty()) {
         //qDebug("dequeue");
         pb::Packet qp = sendQueue->dequeue();
         sendMessage(qp);

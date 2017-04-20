@@ -155,6 +155,7 @@ void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename)
         sendPacket(p, chatname);
         //QThread::msleep(10);
     }
+    qDebug("done enqueueing file");
 }
 
 void ChatManager::sendFile(QString chatname, QString filepath){
