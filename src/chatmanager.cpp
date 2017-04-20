@@ -153,7 +153,7 @@ void ChatManager::sendFile(QString chatname, QByteArray *data, QString filename)
         msg->set_more(idx < data->size());
 
         sendPacket(p, chatname);
-        QThread::msleep(10);
+        //QThread::msleep(10);
     }
 }
 
@@ -189,7 +189,7 @@ void ChatManager::sendPacket(pb::Packet p, QString chatname){
             }
 
             msg->set_chatname(chatname.toUtf8().constData());
-            router->sendMessage(p);
+            router->sendQueuedMessage(p);
             break;
         }
     }
@@ -246,11 +246,11 @@ void ChatManager::recipientsChanged(int chatindex, QStringList new_rcpnts){
     /* Signal received that the recipients of a chat changed */
     std::vector<QString> new_recipients;
 
-    qDebug() << "Changed recipients of " << chatnames[chatindex] << " to ";
+    //qDebug() << "Changed recipients of " << chatnames[chatindex] << " to ";
 
     for(QString ipstr : new_rcpnts){ // Remove all spaces
         new_recipients.push_back(ipstr.trimmed());
-        qDebug() << ipstr.trimmed();
+        //qDebug() << ipstr.trimmed();
     }
 
     recipients[chatindex] = new_recipients;

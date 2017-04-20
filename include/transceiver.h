@@ -21,7 +21,7 @@ public:
     explicit Transceiver(QObject *parent = 0);
 
 public slots:
-    void sendMessage(pb::Packet);
+    bool sendMessage(pb::Packet);
     void processPendingDatagrams();
 signals:
     void messageReceived(pb::Packet);

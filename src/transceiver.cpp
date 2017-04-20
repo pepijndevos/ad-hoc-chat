@@ -40,7 +40,7 @@ void Transceiver::processPendingDatagrams() {
     }
 }
 
-void Transceiver::sendMessage(pb::Packet pkt) {
+bool Transceiver::sendMessage(pb::Packet pkt) {
     QByteArray datagram;
     int size = pkt.ByteSize();
     datagram.resize(size);
@@ -49,8 +49,7 @@ void Transceiver::sendMessage(pb::Packet pkt) {
     CFB_Mode<AES>::Encryption cfbEncryption((byte*)key, sizeof(key), (byte*)iv);
     cfbEncryption.ProcessData((byte*)datagram.data(), (byte*)datagram.data(), datagram.size());
 
-    udpSocket->writeDatagram(datagram.data(), datagram.size(),
-                             groupAddress, 10000);
+    int written = udpSocket->writeDatagram(datagram.data(), datagram.size(), groupAddress, 10000);
 
-    //qDebug() << "Packet sent" << pkt.DebugString().c_str();
+    return written == datagram.size();
 }
